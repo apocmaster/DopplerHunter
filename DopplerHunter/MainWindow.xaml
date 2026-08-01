@@ -1,0 +1,206 @@
+﻿<Window x:Class="DopplerHunter.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:DopplerHunter"
+        mc:Ignorable="d"
+        WindowStartupLocation="CenterScreen"
+        Background="{StaticResource AppBackground}"
+        Title="Doopple Hunter" Height="620" Width="1140">
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <!-- Header Top Bar -->
+            <RowDefinition Height="Auto"/>
+            <!-- Main Content Grid -->
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- BARRA SUPERIOR / TITULO -->
+        <DockPanel Grid.Row="0" Margin="0,0,0,16">
+            <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
+                <TextBlock Text="🔍" FontSize="16" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                <TextBlock Text="QUICK DUPLICATE FINDER" FontWeight="Bold" FontSize="14" Foreground="{StaticResource TextPrimary}" VerticalAlignment="Center"/>
+            </StackPanel>
+        </DockPanel>
+
+        <!-- CONTENIDO PRINCIPAL EN 3 COLUMNAS -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <!-- Columna 1: Sources (Treeview) -->
+                <ColumnDefinition Width="260"/>
+                <ColumnDefinition Width="16"/>
+                <!-- Columna 2: Selected Paths -->
+                <ColumnDefinition Width="380"/>
+                <ColumnDefinition Width="16"/>
+                <!-- Columna 3: Analysis & Actions -->
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- ========================================== -->
+            <!-- COLUMNA 1: SOURCES -->
+            <!-- ========================================== -->
+            <Border Grid.Column="0" >
+                <DockPanel >
+                    <TextBlock DockPanel.Dock="Top" Text="SOURCES" Style="{StaticResource SectionHeaderStyle}"/>
+                    <Border Style="{StaticResource CardPanelStyle}">
+                        <TreeView BorderThickness="0" Background="Transparent">
+                            <TreeViewItem Header="This PC" IsExpanded="True">
+                                <TreeViewItem Header="Folder1"/>
+                                <TreeViewItem Header="Folder2"/>
+                                <TreeViewItem Header="Folder3"/>
+                            </TreeViewItem>
+                            <TreeViewItem Header="External Drives"/>
+                            <TreeViewItem Header="Network Locations"/>
+                        </TreeView>
+                    </Border>
+                </DockPanel>
+            </Border>
+
+            <!-- ========================================== -->
+            <!-- COLUMNA 2: SELECTED PATHS -->
+            <!-- ========================================== -->
+            <Grid Grid.Column="2">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <TextBlock Grid.Row="0" Text="SELECTED PATHS" Style="{StaticResource SectionHeaderStyle}"/>
+
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                    <StackPanel>
+                        <!-- Controles Globales Superior -->
+                        <Border Style="{StaticResource CardPanelStyle}" Padding="12">
+                            <StackPanel>
+                                <TextBlock Text="GLOBAL CONTROLS" FontSize="11" FontWeight="Bold" Foreground="{StaticResource TextSecondary}" Margin="0,0,0,8"/>
+                                <WrapPanel>
+                                    <Button Content="Add Directory" Style="{StaticResource SecondaryButtonStyle}" Margin="0,0,4,4"/>
+                                    <Button Content="Include Subdirectories for All" Style="{StaticResource SecondaryButtonStyle}" Margin="0,0,4,4"/>
+                                    <Button Content="Clear All" Style="{StaticResource SecondaryButtonStyle}" Margin="0,0,4,4"/>
+                                    <Button Content="Search for Duplicates" Style="{StaticResource PrimaryButtonStyle}" Margin="0,0,0,4"/>
+                                </WrapPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Lista de Carpetas Seleccionadas (Item Ejemplo) -->
+                        <Border Style="{StaticResource CardPanelStyle}">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <TextBlock Grid.Row="0" Text="Path: C:\Users\Documents\books\...\backup1" FontSize="11" Foreground="{StaticResource TextSecondary}" TextTrimming="CharacterEllipsis"/>
+                                <TextBlock Grid.Row="1" Text="Root/Name" FontSize="14" FontWeight="Bold" Foreground="{StaticResource TextPrimary}" Margin="0,4,0,8"/>
+
+                                <DockPanel Grid.Row="2">
+                                    <CheckBox Content="Scan Subdirectories" IsChecked="True" VerticalAlignment="Center"/>
+                                    <Button Content="Remove" Foreground="{StaticResource DangerAccent}" HorizontalAlignment="Right" Background="Transparent" BorderThickness="0" Cursor="Hand"/>
+                                </DockPanel>
+                            </Grid>
+                        </Border>
+
+                        <!-- Repetición de otra carpeta para demostración -->
+                        <Border Style="{StaticResource CardPanelStyle}">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <TextBlock Grid.Row="0" Text="Path: C:\Users\Documents\programming" FontSize="11" Foreground="{StaticResource TextSecondary}"/>
+                                <TextBlock Grid.Row="1" Text="Dev_Backup" FontSize="14" FontWeight="Bold" Foreground="{StaticResource TextPrimary}" Margin="0,4,0,8"/>
+                                <DockPanel Grid.Row="2">
+                                    <CheckBox Content="Scan Subdirectories" IsChecked="False" VerticalAlignment="Center"/>
+                                    <Button Content="Remove" Foreground="{StaticResource DangerAccent}" HorizontalAlignment="Right" Background="Transparent" BorderThickness="0" Cursor="Hand"/>
+                                </DockPanel>
+                            </Grid>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </Grid>
+
+            <!-- ========================================== -->
+            <!-- COLUMNA 3: ANALYSIS & ACTION -->
+            <!-- ========================================== -->
+            <Grid Grid.Column="4">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <TextBlock Grid.Row="0" Text="ANALYSIS &amp; ACTION" Style="{StaticResource SectionHeaderStyle}"/>
+
+                <!-- Tarjetas de Métricas/Métricas clave (KPIs) -->
+                <UniformGrid Grid.Row="1" Columns="3" Margin="0,0,0,12">
+                    <Border Style="{StaticResource CardPanelStyle}" Margin="0,0,6,0">
+                        <StackPanel>
+                            <TextBlock Text="Directories Scanned" FontSize="11" Foreground="{StaticResource TextSecondary}"/>
+                            <TextBlock Text="47" FontSize="22" FontWeight="Bold" Foreground="{StaticResource TextPrimary}" Margin="0,4,0,0"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource CardPanelStyle}" Margin="3,0,3,0">
+                        <StackPanel>
+                            <TextBlock Text="Total Files" FontSize="11" Foreground="{StaticResource TextSecondary}"/>
+                            <TextBlock Text="11,430" FontSize="22" FontWeight="Bold" Foreground="{StaticResource TextPrimary}" Margin="0,4,0,0"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource CardPanelStyle}" Margin="6,0,0,0">
+                        <StackPanel>
+                            <TextBlock Text="Duplicates Found" FontSize="11" Foreground="{StaticResource TextSecondary}"/>
+                            <TextBlock Text="1,055" FontSize="22" FontWeight="Bold" Foreground="{StaticResource DangerAccent}" Margin="0,4,0,0"/>
+                        </StackPanel>
+                    </Border>
+                </UniformGrid>
+
+                <!-- Tabla de Resultados (DataGrid de Archivos Duplicados) -->
+                <Border Grid.Row="2" Style="{StaticResource CardPanelStyle}" Padding="12">
+                    <DockPanel>
+                        <!-- Filtros y Acción Masiva -->
+                        <DockPanel DockPanel.Dock="Top" Margin="0,0,0,12">
+                            <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
+                                <ComboBox Width="100" SelectedIndex="0" Margin="0,0,8,0">
+                                    <ComboBoxItem Content="Filter All"/>
+                                </ComboBox>
+                                <ComboBox Width="120" SelectedIndex="0">
+                                    <ComboBoxItem Content="All Duplicates"/>
+                                </ComboBox>
+                            </StackPanel>
+                            <Button Content="DELETE ALL SELECTED DUPLICATES" Style="{StaticResource PrimaryButtonStyle}" Background="{StaticResource DangerAccent}" DockPanel.Dock="Right" HorizontalAlignment="Right"/>
+                        </DockPanel>
+
+                        <!-- Tabla con agrupamiento de duplicados -->
+                        <DataGrid AutoGenerateColumns="False" HeadersVisibility="Column" GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="{StaticResource BorderBrushLight}" Background="Transparent" BorderThickness="0">
+                            <DataGrid.Columns>
+                                <DataGridCheckBoxColumn Width="40"/>
+                                <DataGridTextColumn Header="File Name" Binding="{Binding FileName}" Width="*"/>
+                                <DataGridTextColumn Header="Ext" Binding="{Binding Extension}" Width="50"/>
+                                <DataGridTextColumn Header="Hash" Binding="{Binding Hash}" Width="110"/>
+                                <DataGridTextColumn Header="Parent Folder" Binding="{Binding ParentFolder}" Width="140"/>
+                                <DataGridTemplateColumn Header="Actions" Width="80">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <Button Content="DELETE" Foreground="{StaticResource DangerAccent}" Background="Transparent" BorderThickness="0" FontWeight="Bold" Cursor="Hand"/>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </DockPanel>
+                </Border>
+            </Grid>
+            <!-- ========================================== -->
+            <!-- COLUMNAS: BARRAS -->
+            <!-- ========================================== -->
+            <Border Grid.Column="1" BorderBrush="{StaticResource Bar}" 
+                    BorderThickness="1" Width="2" VerticalAlignment="Stretch">                
+            </Border>
+            <Border Grid.Column="3" BorderBrush="{StaticResource Bar}" 
+        BorderThickness="1" Width="2" VerticalAlignment="Stretch">
+            </Border>
+        </Grid>
+    </Grid>
+</Window>
