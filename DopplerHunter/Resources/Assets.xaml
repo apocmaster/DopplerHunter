@@ -1,0 +1,97 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    
+    <!--BRUSHES-->
+    <SolidColorBrush x:Key="ScrollBarThumbBrush" Color="#888888" />
+    <SolidColorBrush x:Key="ScrollBarThumbHoverBrush" Color="#555555" />
+    <SolidColorBrush x:Key="ScrollBarTrackBrush" Color="Transparent" />
+
+    <!--STYLES-->
+    <Style x:Key="ScrollBarThumbStyle" TargetType="{x:Type Thumb}">
+        <Setter Property="OverridesDefaultStyle" Value="true"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type Thumb}">
+                     <!--Aquí definimos el grosor visual con el Margin--> 
+                    <Border x:Name="rectangle" 
+                        Background="{StaticResource ScrollBarThumbBrush}" 
+                        CornerRadius="4" 
+                        Margin="2,0,2,0"
+                            />
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="true">
+                            <Setter TargetName="rectangle" Property="Background" Value="{StaticResource ScrollBarThumbHoverBrush}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style TargetType="{x:Type ScrollBar}">
+        <Setter Property="Stylus.IsPressAndHoldEnabled" Value="false"/>
+        <Setter Property="Stylus.IsFlicksEnabled" Value="false"/>
+        <Setter Property="Background" Value="{StaticResource ScrollBarTrackBrush}"/>
+        <Setter Property="Width" Value="8"/>
+        <!-- Grosor de la barra vertical -->
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type ScrollBar}">
+                    <Grid x:Name="Bg" Background="{TemplateBinding Background}" SnapsToDevicePixels="true">
+                        <!-- El Track es el corazón de la barra [10, 11] -->
+                        <Track x:Name="PART_Track" IsDirectionReversed="true" IsEnabled="{TemplateBinding IsEnabled}">
+                            <Track.Thumb>
+                                <Thumb Style="{StaticResource ScrollBarThumbStyle}" />
+                            </Track.Thumb>
+                        </Track>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+
+        <!-- Soporte para ScrollBar Horizontal [12] -->
+        <Style.Triggers>
+            <Trigger Property="Orientation" Value="Horizontal">
+                <Setter Property="Width" Value="Auto"/>
+                <Setter Property="Height" Value="8"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="{x:Type ScrollBar}">
+                            <Grid x:Name="Bg" Background="{TemplateBinding Background}" SnapsToDevicePixels="true">
+                                <Track x:Name="PART_Track" IsEnabled="{TemplateBinding IsEnabled}">
+                                    <Track.Thumb>
+                                        <Thumb Style="{StaticResource ScrollBarThumbStyle}" Margin="0,2,0,2"/>
+                                    </Track.Thumb>
+                                </Track>
+                            </Grid>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!--ICONS-->
+    <GeometryGroup x:Key="SunIconGeometry">
+        <!-- Círculo central -->
+        <EllipseGeometry Center="50,50" RadiusX="25" RadiusY="25" />
+        <!-- Rayos -->
+        <LineGeometry StartPoint="50,0" EndPoint="50,20" />
+        <LineGeometry StartPoint="50,80" EndPoint="50,100" />
+        <LineGeometry StartPoint="0,50" EndPoint="20,50" />
+        <LineGeometry StartPoint="80,50" EndPoint="100,50" />
+    </GeometryGroup>
+    <GeometryGroup x:Key="HardDiskGeometry">
+        <PathGeometry Figures="M25 20a2 2 0 1 1 .001 4.001A2 2 0 0 1 25 20" />
+        <PathGeometry Figures="M21 2c2.15 0 3.22 0 4.12.367c.798.324 1.5.848 2.03 1.52c.607.764.911 1.79 1.52 3.85l2.66 9.04c.164.558.246.838.314 1.12c.179.737.288 1.49.324 2.25c.014.29.014.581.014 1.16l-.002.401l.002.287c0 1.86 0 2.8-.305 3.53a3.97 3.97 0 0 1-2.16 2.16c-.735.304-1.67.305-3.53.305h-20l-1.23-.005c-.993-.013-1.63-.062-2.16-.246l-.14-.054a4 4 0 0 1-2.08-1.98l-.08-.182c-.304-.735-.305-1.67-.305-3.53v-.688c0-.582 0-.874.013-1.16q.042-.851.203-1.69L.33 17.9c.034-.14.072-.28.121-.455l.193-.664l2.66-9.04c.568-1.93.87-2.96 1.41-3.71l.111-.146a4.9 4.9 0 0 1 1.74-1.39l.295-.13c.678-.275 1.45-.344 2.7-.36l1.42-.006h10zM6 17c-.945 0-1.6.001-2.12.036c-.507.035-.803.1-1.03.192a2.98 2.98 0 0 0-1.62 1.62c-.093.225-.158.521-.192 1.03c-.032.463-.035 1.04-.035 1.84c.002 1.34.019 1.89.139 2.33a3.99 3.99 0 0 0 2.81 2.81c.482.131 1.1.14 2.74.14h18.6c1.64 0 2.25-.008 2.74-.14a3.99 3.99 0 0 0 2.81-2.81c.12-.44.136-.995.138-2.33c0-.796-.003-1.37-.034-1.84c-.035-.507-.1-.803-.192-1.03a2.98 2.98 0 0 0-1.62-1.62c-.225-.093-.521-.158-1.03-.192c-.516-.035-1.17-.036-2.12-.036h-20zm4.99-14c-2.24 0-3.07.017-3.75.293a4 4 0 0 0-1.63 1.22c-.456.574-.708 1.37-1.34 3.51l-2.56 8.69q.272-.19.576-.334l.182-.08c.735-.304 1.67-.305 3.53-.305h20c1.86 0 2.8 0 3.53.305c.269.11.522.252.757.416l-2.56-8.7c-.631-2.14-.883-2.94-1.34-3.51a4 4 0 0 0-1.63-1.22c-.679-.276-1.51-.293-3.75-.293h-10z" />
+    </GeometryGroup>
+    <GeometryGroup x:Key="FolderGeometry">
+        <PathGeometry Figures="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z" />
+    </GeometryGroup>
+    <GeometryGroup x:Key="TrashGeometry">
+        <PathGeometry Figures="m18 9l-.84 8.398c-.127 1.273-.19 1.909-.48 2.39a2.5 2.5 0 0 1-1.075.973C15.098 21 14.46 21 13.18 21h-2.36c-1.279 0-1.918 0-2.425-.24a2.5 2.5 0 0 1-1.076-.973c-.288-.48-.352-1.116-.48-2.389L6 9m7.5 6.5v-5m-3 5v-5m-6-4h4.615m0 0l.386-2.672c.112-.486.516-.828.98-.828h3.038c.464 0 .867.342.98.828l.386 2.672m-5.77 0h5.77m0 0H19.5" />
+    </GeometryGroup>
+    <GeometryGroup x:Key="ClearSelectionGeometry">
+        <PathGeometry Figures="M1713 896q69 0 130 26t106 72t72 107t27 131q0 66-25 127t-73 110l-449 448l-90-90l448-449q29-29 45-67t16-79q0-43-16-80t-45-66t-66-45t-81-17q-41 0-79 16t-67 45l-195 195h165v128h-384v-384h128v165q47-47 93-99t97-95t111-71t132-28m79-128h-128V640h128zm0-256h-128V384h128zm0-256h-128V128h128zm-256 0h-128V128h128zm-256 0h-128V128h128zM896 128h128v128H896zm-256 0h128v128H640zm-256 0h128v128H384zm-256 0h128v128H128zm0 256h128v128H128zm0 256h128v128H128zm0 256h128v128H128zm0 256h128v128H128zm0 256h128v128H128zm0 256h128v128H128zm256 0h128v128H384zm256 0h128v128H640zm256 0h128v128H896zm256 0h128v128h-128z"/>
+    </GeometryGroup>
+</ResourceDictionary>

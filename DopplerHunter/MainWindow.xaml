@@ -3,11 +3,16 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:DopplerHunter"
+        xmlns:local="clr-namespace:DopplerHunter.ViewModels"
+        
         mc:Ignorable="d"
         WindowStartupLocation="CenterScreen"
         Background="{StaticResource AppBackground}"
         Title="Doopple Hunter" Height="620" Width="1140">
+    <Window.DataContext>
+        <local:MainViewModel/>
+    </Window.DataContext>
+    
     <Grid Margin="16">
         <Grid.RowDefinitions>
             <!-- Header Top Bar -->
@@ -44,14 +49,41 @@
                 <DockPanel >
                     <TextBlock DockPanel.Dock="Top" Text="SOURCES" Style="{StaticResource SectionHeaderStyle}"/>
                     <Border Style="{StaticResource CardPanelStyle}">
-                        <TreeView BorderThickness="0" Background="Transparent">
-                            <TreeViewItem Header="This PC" IsExpanded="True">
-                                <TreeViewItem Header="Folder1"/>
-                                <TreeViewItem Header="Folder2"/>
-                                <TreeViewItem Header="Folder3"/>
-                            </TreeViewItem>
-                            <TreeViewItem Header="External Drives"/>
-                            <TreeViewItem Header="Network Locations"/>
+                        <TreeView BorderThickness="0" Background="Transparent" ItemsSource="{Binding Drives}" >
+                            <TreeView.ItemContainerStyle>
+                                <Style TargetType="TreeViewItem">
+                                    <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}"/>
+                                </Style>
+                            </TreeView.ItemContainerStyle>
+                            <TreeView.ItemTemplate>
+                                <HierarchicalDataTemplate ItemsSource="{Binding Children}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <!-- Imagen o icono puede ir aquí [14] -->
+                                        <Path x:Name="DiskOrFolderIcon" Data="{StaticResource FolderGeometry }" StrokeThickness="1" Width="20" Height="20" Stretch="Uniform"/>
+                                        <TextBlock Text="{Binding Name}" Margin="5,0"/>
+                                    </StackPanel>
+                                    <HierarchicalDataTemplate.Triggers>
+                                        <DataTrigger Binding="{Binding IsDrive}" Value="True">
+                                            <Setter TargetName="DiskOrFolderIcon" Property="Data" Value="{StaticResource HardDiskGeometry}"/>
+                                            <Setter TargetName="DiskOrFolderIcon" Property="Stroke" Value="#FF232321"/>
+                                            <Setter TargetName="DiskOrFolderIcon" Property="Fill" Value="#FFE7E6E6"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding IsDrive}" Value="False">
+                                            <Setter TargetName="DiskOrFolderIcon" Property="Data" Value="{StaticResource FolderGeometry}"/>
+                                            <Setter TargetName="DiskOrFolderIcon" Property="Stroke" Value="#FF745118"/>
+                                            <Setter TargetName="DiskOrFolderIcon" Property="Fill" Value="#FFFAD67F"/>
+                                        </DataTrigger>
+                                    </HierarchicalDataTemplate.Triggers>
+                                </HierarchicalDataTemplate>                                
+                            </TreeView.ItemTemplate>
+                            <TreeView.InputBindings>
+                                <MouseBinding MouseAction="LeftDoubleClick" 
+                                    Command="{Binding ProcessDirectoryCommand}" 
+                                    CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=TreeView}, Path=SelectedItem}"/>
+                                <KeyBinding Key="Enter" 
+                                    Command="{Binding AddFolderToSearchCommand}" 
+                                    CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=TreeView}, Path=SelectedItem}"/>
+                            </TreeView.InputBindings>
                         </TreeView>
                     </Border>
                 </DockPanel>
@@ -66,59 +98,63 @@
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
-                <TextBlock Grid.Row="0" Text="SELECTED PATHS" Style="{StaticResource SectionHeaderStyle}"/>
-
+                <StackPanel Grid.Row="0">
+                    <TextBlock  Text="SELECTED PATHS" Style="{StaticResource SectionHeaderStyle}"/>
+                
+                    <!-- Controles Globales Superior -->
+                    <Border Style="{StaticResource CardPanelStyle}" Padding="12" Margin="0,0,0,10">
+                        <StackPanel>
+                            <TextBlock Text="GLOBAL CONTROLS" FontSize="11" FontWeight="Bold" Foreground="{StaticResource TextSecondary}" Margin="0,0,0,8"/>
+                            <WrapPanel>
+                                <Button Content="Add Directory" Style="{StaticResource SecondaryButtonStyle}" Margin="0,0,4,4"/>
+                                <Button Content="Include Subdirectories for All" Style="{StaticResource SecondaryButtonStyle}" Margin="0,0,4,4"/>
+                                <Button Style="{StaticResource SecondaryButtonStyle}" Margin="0,0,4,4"
+                                        Command="{Binding ClearSelectionCommand}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <Path Data="{StaticResource ClearSelectionGeometry}" Width="20" Height="20" Stretch="Uniform" Margin="0,0,4,0"  Stroke="{StaticResource TextSecondary}"/>
+                                        <TextBlock Text="Clear"/>
+                                    </StackPanel>
+                                </Button>
+                                <Button Content="Search for Duplicates" Style="{StaticResource PrimaryButtonStyle}" Margin="0,0,0,4"/>
+                            </WrapPanel>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+                
                 <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-                    <StackPanel>
-                        <!-- Controles Globales Superior -->
-                        <Border Style="{StaticResource CardPanelStyle}" Padding="12">
-                            <StackPanel>
-                                <TextBlock Text="GLOBAL CONTROLS" FontSize="11" FontWeight="Bold" Foreground="{StaticResource TextSecondary}" Margin="0,0,0,8"/>
-                                <WrapPanel>
-                                    <Button Content="Add Directory" Style="{StaticResource SecondaryButtonStyle}" Margin="0,0,4,4"/>
-                                    <Button Content="Include Subdirectories for All" Style="{StaticResource SecondaryButtonStyle}" Margin="0,0,4,4"/>
-                                    <Button Content="Clear All" Style="{StaticResource SecondaryButtonStyle}" Margin="0,0,4,4"/>
-                                    <Button Content="Search for Duplicates" Style="{StaticResource PrimaryButtonStyle}" Margin="0,0,0,4"/>
-                                </WrapPanel>
-                            </StackPanel>
-                        </Border>
-
-                        <!-- Lista de Carpetas Seleccionadas (Item Ejemplo) -->
-                        <Border Style="{StaticResource CardPanelStyle}">
-                            <Grid>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                </Grid.RowDefinitions>
-
-                                <TextBlock Grid.Row="0" Text="Path: C:\Users\Documents\books\...\backup1" FontSize="11" Foreground="{StaticResource TextSecondary}" TextTrimming="CharacterEllipsis"/>
-                                <TextBlock Grid.Row="1" Text="Root/Name" FontSize="14" FontWeight="Bold" Foreground="{StaticResource TextPrimary}" Margin="0,4,0,8"/>
-
-                                <DockPanel Grid.Row="2">
-                                    <CheckBox Content="Scan Subdirectories" IsChecked="True" VerticalAlignment="Center"/>
-                                    <Button Content="Remove" Foreground="{StaticResource DangerAccent}" HorizontalAlignment="Right" Background="Transparent" BorderThickness="0" Cursor="Hand"/>
-                                </DockPanel>
-                            </Grid>
-                        </Border>
-
-                        <!-- Repetición de otra carpeta para demostración -->
-                        <Border Style="{StaticResource CardPanelStyle}">
-                            <Grid>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                </Grid.RowDefinitions>
-                                <TextBlock Grid.Row="0" Text="Path: C:\Users\Documents\programming" FontSize="11" Foreground="{StaticResource TextSecondary}"/>
-                                <TextBlock Grid.Row="1" Text="Dev_Backup" FontSize="14" FontWeight="Bold" Foreground="{StaticResource TextPrimary}" Margin="0,4,0,8"/>
-                                <DockPanel Grid.Row="2">
-                                    <CheckBox Content="Scan Subdirectories" IsChecked="False" VerticalAlignment="Center"/>
-                                    <Button Content="Remove" Foreground="{StaticResource DangerAccent}" HorizontalAlignment="Right" Background="Transparent" BorderThickness="0" Cursor="Hand"/>
-                                </DockPanel>
-                            </Grid>
-                        </Border>
-                    </StackPanel>
+                    <ItemsControl ItemsSource="{Binding FoldersToSearch}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Style="{StaticResource CardPanelStyle}" Margin="0,0,0,10">
+                                    <Grid>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+                                        
+                                        <TextBlock Grid.Row="0" Text="{Binding FullPath}" FontSize="11" Foreground="{StaticResource TextSecondary}" TextTrimming="CharacterEllipsis"/>
+                                        <TextBlock Grid.Row="1" Text="{Binding Name}" FontSize="14" FontWeight="Bold" Foreground="{StaticResource TextPrimary}" Margin="0,4,0,8"/>
+                                        <DockPanel Grid.Row="2">
+                                            <CheckBox Content="Scan Subdirectories" IsChecked="{Binding IncludeSubdirectories, Mode=TwoWay}" VerticalAlignment="Center"/>
+                                            <Button  
+                                                Command="{Binding DataContext.RemoveFolderCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                CommandParameter="{Binding}"
+                                                Foreground="{StaticResource DangerAccent}" 
+                                                HorizontalAlignment="Right" Background="Transparent" 
+                                                BorderThickness="0" Cursor="Hand">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <Path Data="{StaticResource TrashGeometry}" Width="16" Height="16" Stretch="Uniform" Margin="0,0,4,0"  Stroke="{StaticResource DangerAccent}"/>
+                                                    <TextBlock Text="Remove"/>
+                                                </StackPanel>
+                                            </Button>
+                                        </DockPanel>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                        
+                    </ItemsControl>
                 </ScrollViewer>
             </Grid>
 
