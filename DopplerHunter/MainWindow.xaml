@@ -33,135 +33,159 @@
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
                 <!-- Columna 1: Sources (Treeview) -->
-                <ColumnDefinition Width="260"/>
+                <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="16"/>
                 <!-- Columna 2: Selected Paths -->
-                <ColumnDefinition Width="380"/>
-                <ColumnDefinition Width="16"/>
+                <!--<ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="16"/>-->
                 <!-- Columna 3: Analysis & Actions -->
-                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="2*"/>
             </Grid.ColumnDefinitions>
 
-            <!-- ========================================== -->
-            <!-- COLUMNA 1: SOURCES -->
-            <!-- ========================================== -->
-            <Border Grid.Column="0" >
-                <DockPanel >
-                    <TextBlock DockPanel.Dock="Top" Text="SOURCES" Style="{StaticResource SectionHeaderStyle}"/>
-                    <Border Style="{StaticResource CardPanelStyle}">
-                        <TreeView BorderThickness="0" Background="Transparent" ItemsSource="{Binding Drives}" >
-                            <TreeView.ItemContainerStyle>
-                                <Style TargetType="TreeViewItem">
-                                    <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}"/>
-                                </Style>
-                            </TreeView.ItemContainerStyle>
-                            <TreeView.ItemTemplate>
-                                <HierarchicalDataTemplate ItemsSource="{Binding Children}">
-                                    <StackPanel Orientation="Horizontal">
-                                        <!-- Imagen o icono puede ir aquí [14] -->
-                                        <Path x:Name="DiskOrFolderIcon" Data="{StaticResource FolderGeometry }" StrokeThickness="1" Width="20" Height="20" Stretch="Uniform"/>
-                                        <TextBlock Text="{Binding Name}" Margin="5,0"/>
-                                    </StackPanel>
-                                    <HierarchicalDataTemplate.Triggers>
-                                        <DataTrigger Binding="{Binding IsDrive}" Value="True">
-                                            <Setter TargetName="DiskOrFolderIcon" Property="Data" Value="{StaticResource HardDiskGeometry}"/>
-                                            <Setter TargetName="DiskOrFolderIcon" Property="Stroke" Value="#FF232321"/>
-                                            <Setter TargetName="DiskOrFolderIcon" Property="Fill" Value="#FFE7E6E6"/>
-                                        </DataTrigger>
-                                        <DataTrigger Binding="{Binding IsDrive}" Value="False">
-                                            <Setter TargetName="DiskOrFolderIcon" Property="Data" Value="{StaticResource FolderGeometry}"/>
-                                            <Setter TargetName="DiskOrFolderIcon" Property="Stroke" Value="#FF745118"/>
-                                            <Setter TargetName="DiskOrFolderIcon" Property="Fill" Value="#FFFAD67F"/>
-                                        </DataTrigger>
-                                    </HierarchicalDataTemplate.Triggers>
-                                </HierarchicalDataTemplate>                                
-                            </TreeView.ItemTemplate>
-                            <TreeView.InputBindings>
-                                <MouseBinding MouseAction="LeftDoubleClick" 
-                                    Command="{Binding ProcessDirectoryCommand}" 
-                                    CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=TreeView}, Path=SelectedItem}"/>
-                                <KeyBinding Key="Enter" 
-                                    Command="{Binding AddFolderToSearchCommand}" 
-                                    CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=TreeView}, Path=SelectedItem}"/>
-                            </TreeView.InputBindings>
-                        </TreeView>
-                    </Border>
-                </DockPanel>
-            </Border>
-
-            <!-- ========================================== -->
-            <!-- COLUMNA 2: SELECTED PATHS -->
-            <!-- ========================================== -->
-            <Grid Grid.Column="2">
+            <Grid Grid.Column="0">
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="16"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
-                <StackPanel Grid.Row="0">
-                    <TextBlock  Text="SELECTED PATHS" Style="{StaticResource SectionHeaderStyle}"/>
-                
-                    <!-- Controles Globales Superior -->
-                    <Border Style="{StaticResource CardPanelStyle}" Padding="12" Margin="0,0,0,10">
-                        <StackPanel>
-                            <TextBlock Text="GLOBAL CONTROLS" FontSize="11" FontWeight="Bold" Foreground="{StaticResource TextSecondary}" Margin="0,0,0,8"/>
-                            <WrapPanel>
-                                <Button Content="Add Directory" Style="{StaticResource SecondaryButtonStyle}" Margin="0,0,4,4"/>
-                                <Button Content="Include Subdirectories for All" Style="{StaticResource SecondaryButtonStyle}" Margin="0,0,4,4"/>
-                                <Button Style="{StaticResource SecondaryButtonStyle}" Margin="0,0,4,4"
-                                        Command="{Binding ClearSelectionCommand}">
-                                    <StackPanel Orientation="Horizontal">
-                                        <Path Data="{StaticResource ClearSelectionGeometry}" Width="20" Height="20" Stretch="Uniform" Margin="0,0,4,0"  Stroke="{StaticResource TextSecondary}"/>
-                                        <TextBlock Text="Clear"/>
-                                    </StackPanel>
-                                </Button>
-                                <Button Content="Search for Duplicates" Style="{StaticResource PrimaryButtonStyle}" Margin="0,0,0,4"/>
-                            </WrapPanel>
-                        </StackPanel>
-                    </Border>
-                </StackPanel>
-                
-                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-                    <ItemsControl ItemsSource="{Binding FoldersToSearch}">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <Border Style="{StaticResource CardPanelStyle}" Margin="0,0,0,10">
-                                    <Grid>
-                                        <Grid.RowDefinitions>
-                                            <RowDefinition Height="Auto"/>
-                                            <RowDefinition Height="Auto"/>
-                                            <RowDefinition Height="Auto"/>
-                                        </Grid.RowDefinitions>
-                                        
-                                        <TextBlock Grid.Row="0" Text="{Binding FullPath}" FontSize="11" Foreground="{StaticResource TextSecondary}" TextTrimming="CharacterEllipsis"/>
-                                        <TextBlock Grid.Row="1" Text="{Binding Name}" FontSize="14" FontWeight="Bold" Foreground="{StaticResource TextPrimary}" Margin="0,4,0,8"/>
-                                        <DockPanel Grid.Row="2">
-                                            <CheckBox Content="Scan Subdirectories" IsChecked="{Binding IncludeSubdirectories, Mode=TwoWay}" VerticalAlignment="Center"/>
-                                            <Button  
-                                                Command="{Binding DataContext.RemoveFolderCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
-                                                CommandParameter="{Binding}"
-                                                Foreground="{StaticResource DangerAccent}" 
-                                                HorizontalAlignment="Right" Background="Transparent" 
-                                                BorderThickness="0" Cursor="Hand">
-                                                <StackPanel Orientation="Horizontal">
-                                                    <Path Data="{StaticResource TrashGeometry}" Width="16" Height="16" Stretch="Uniform" Margin="0,0,4,0"  Stroke="{StaticResource DangerAccent}"/>
-                                                    <TextBlock Text="Remove"/>
-                                                </StackPanel>
-                                            </Button>
-                                        </DockPanel>
-                                    </Grid>
-                                </Border>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                        
-                    </ItemsControl>
-                </ScrollViewer>
+                <!-- ========================================== -->
+                <!-- ROW 1: SOURCES -->
+                <!-- ========================================== -->
+                <Border Grid.Row="0" >
+                    <DockPanel >
+                        <TextBlock DockPanel.Dock="Top" Text="SOURCES" Style="{StaticResource SectionHeaderStyle}"/>
+                        <Border Style="{StaticResource CardPanelStyle}">
+                            <TreeView BorderThickness="0" Background="Transparent" ItemsSource="{Binding Drives}" 
+                                      VirtualizingStackPanel.IsVirtualizing="True"
+                                      VirtualizingStackPanel.VirtualizationMode="Recycling">
+                                <TreeView.ItemContainerStyle>
+                                    <Style TargetType="TreeViewItem">
+                                        <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}"/>
+                                    </Style>
+                                </TreeView.ItemContainerStyle>
+                                <TreeView.ItemTemplate>
+                                    <HierarchicalDataTemplate ItemsSource="{Binding Children}">
+                                        <StackPanel Orientation="Horizontal">
+                                            <!-- Imagen o icono puede ir aquí [14] -->
+                                            <Path x:Name="DiskOrFolderIcon" Data="{StaticResource FolderGeometry }" StrokeThickness="1" Width="20" Height="20" Stretch="Uniform"/>
+                                            <TextBlock Text="{Binding Name}" Margin="5,0"/>
+                                        </StackPanel>
+                                        <HierarchicalDataTemplate.Triggers>
+                                            <DataTrigger Binding="{Binding IsDrive}" Value="True">
+                                                <Setter TargetName="DiskOrFolderIcon" Property="Data" Value="{StaticResource HardDiskGeometry}"/>
+                                                <Setter TargetName="DiskOrFolderIcon" Property="Stroke" Value="#FF232321"/>
+                                                <Setter TargetName="DiskOrFolderIcon" Property="Fill" Value="#FFE7E6E6"/>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding IsDrive}" Value="False">
+                                                <Setter TargetName="DiskOrFolderIcon" Property="Data" Value="{StaticResource FolderGeometry}"/>
+                                                <Setter TargetName="DiskOrFolderIcon" Property="Stroke" Value="#FF745118"/>
+                                                <Setter TargetName="DiskOrFolderIcon" Property="Fill" Value="#FFFAD67F"/>
+                                            </DataTrigger>
+                                        </HierarchicalDataTemplate.Triggers>
+                                    </HierarchicalDataTemplate>
+                                </TreeView.ItemTemplate>
+                                <TreeView.InputBindings>
+                                    <MouseBinding MouseAction="LeftDoubleClick" 
+                        Command="{Binding ToggleExpandCommand}" 
+                        CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=TreeView}, Path=SelectedItem}"/>
+                                    <KeyBinding Key="Enter" 
+                        Command="{Binding AddFolderToSearchCommand}" 
+                        CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=TreeView}, Path=SelectedItem}"/>
+                                </TreeView.InputBindings>
+                            </TreeView>
+                        </Border>
+                    </DockPanel>
+                </Border>
+
+                <!-- ========================================== -->
+                <!-- ROW 2: SELECTED PATHS -->
+                <!-- ========================================== -->
+                <Grid Grid.Row="2">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Grid.Row="0">
+                        <TextBlock  Text="SELECTED PATHS" Style="{StaticResource SectionHeaderStyle}"/>
+
+                        <!-- Controles Globales Superior -->
+                        <Border Style="{StaticResource CardPanelStyle}" Padding="12" Margin="0,0,0,10">
+                            <StackPanel>
+                                <TextBlock Text="GLOBAL CONTROLS" FontSize="11" FontWeight="Bold" Foreground="{StaticResource TextSecondary}" Margin="0,0,0,8"/>
+                                <WrapPanel>
+                                    <Button Style="{StaticResource SecondaryButtonStyle}" Margin="0,0,4,4"
+                            Command="{Binding ClearSelectionCommand}">
+                                        <StackPanel Orientation="Horizontal">
+                                            <Path Data="{StaticResource ClearSelectionGeometry}" Width="20" Height="20" Stretch="Uniform" Margin="0,0,4,0"  Stroke="{StaticResource TextSecondary}"/>
+                                            <TextBlock Text="Clear"/>
+                                        </StackPanel>
+                                    </Button>
+                                    <Button Style="{StaticResource PrimaryButtonStyle}" Margin="0,0,0,4"
+                            Command="{Binding SearchDuplicatesCommand}">
+                                        <StackPanel  Orientation="Horizontal">
+                                            <Path Data="{StaticResource DuplicateGeometry}" Width="20" Height="20" Stretch="Uniform" Margin="0,0,4,0"  Stroke="{StaticResource AppBackground}"/>
+                                            <TextBlock Text="Search Duplicates" />
+                                        </StackPanel>
+                                    </Button>
+                                </WrapPanel>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                        <ItemsControl ItemsSource="{Binding FoldersToSearch}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Style="{StaticResource CardPanelStyle}" Margin="0,0,0,10">
+                                        <Grid>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                            </Grid.RowDefinitions>
+
+                                            <TextBlock Grid.Row="0" Text="{Binding FullPath}" FontSize="11" Foreground="{StaticResource TextSecondary}" TextTrimming="CharacterEllipsis"/>
+                                            <TextBlock Grid.Row="1" Text="{Binding Name}" FontSize="14" FontWeight="Bold" Foreground="{StaticResource TextPrimary}" Margin="0,4,0,8"/>
+                                            <DockPanel Grid.Row="2">
+                                                <CheckBox Content="Scan Subdirectories" IsChecked="{Binding IncludeSubdirectories, Mode=TwoWay}" VerticalAlignment="Center"/>
+                                                <Button  
+                                    Command="{Binding DataContext.RemoveFolderCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                    CommandParameter="{Binding}"
+                                    Foreground="{StaticResource DangerAccent}" 
+                                    HorizontalAlignment="Right" Background="Transparent" 
+                                    BorderThickness="0" Cursor="Hand">
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <Path Data="{StaticResource TrashGeometry}" Width="16" Height="16" Stretch="Uniform" Margin="0,0,4,0"  Stroke="{StaticResource DangerAccent}"/>
+                                                        <TextBlock Text="Remove"/>
+                                                    </StackPanel>
+                                                </Button>
+                                            </DockPanel>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Grid>
+
+                <!-- ========================================== -->
+                <!-- ROWS: BARRAS -->
+                <!-- ========================================== -->
+                <Border Grid.Row="1" BorderBrush="{StaticResource Bar}" 
+                    BorderThickness="1" Height="2" VerticalAlignment="Stretch">
+                </Border>
             </Grid>
+
+            
+
 
             <!-- ========================================== -->
             <!-- COLUMNA 3: ANALYSIS & ACTION -->
             <!-- ========================================== -->
-            <Grid Grid.Column="4">
+            <Grid Grid.Column="2">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
@@ -175,19 +199,19 @@
                     <Border Style="{StaticResource CardPanelStyle}" Margin="0,0,6,0">
                         <StackPanel>
                             <TextBlock Text="Directories Scanned" FontSize="11" Foreground="{StaticResource TextSecondary}"/>
-                            <TextBlock Text="47" FontSize="22" FontWeight="Bold" Foreground="{StaticResource TextPrimary}" Margin="0,4,0,0"/>
+                            <TextBlock Text="{Binding TotalFoldersFound}" FontSize="22" FontWeight="Bold" Foreground="{StaticResource TextPrimary}" Margin="0,4,0,0"/>
                         </StackPanel>
                     </Border>
                     <Border Style="{StaticResource CardPanelStyle}" Margin="3,0,3,0">
                         <StackPanel>
                             <TextBlock Text="Total Files" FontSize="11" Foreground="{StaticResource TextSecondary}"/>
-                            <TextBlock Text="11,430" FontSize="22" FontWeight="Bold" Foreground="{StaticResource TextPrimary}" Margin="0,4,0,0"/>
+                            <TextBlock Text="{Binding TotalFilesFound}" FontSize="22" FontWeight="Bold" Foreground="{StaticResource TextPrimary}" Margin="0,4,0,0"/>
                         </StackPanel>
                     </Border>
                     <Border Style="{StaticResource CardPanelStyle}" Margin="6,0,0,0">
                         <StackPanel>
                             <TextBlock Text="Duplicates Found" FontSize="11" Foreground="{StaticResource TextSecondary}"/>
-                            <TextBlock Text="1,055" FontSize="22" FontWeight="Bold" Foreground="{StaticResource DangerAccent}" Margin="0,4,0,0"/>
+                            <TextBlock Text="{Binding TotalDuplicatesFound}" FontSize="22" FontWeight="Bold" Foreground="{StaticResource DangerAccent}" Margin="0,4,0,0"/>
                         </StackPanel>
                     </Border>
                 </UniformGrid>
@@ -209,13 +233,21 @@
                         </DockPanel>
 
                         <!-- Tabla con agrupamiento de duplicados -->
-                        <DataGrid AutoGenerateColumns="False" HeadersVisibility="Column" GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="{StaticResource BorderBrushLight}" Background="Transparent" BorderThickness="0">
+                        <DataGrid AutoGenerateColumns="False" HeadersVisibility="Column" 
+                                  GridLinesVisibility="Horizontal" 
+                                  HorizontalGridLinesBrush="{StaticResource BorderBrushLight}" 
+                                  Background="Transparent" BorderThickness="0"
+                                  ItemsSource="{Binding FilesView}" 
+                                  CanUserSortColumns="True"
+                                  CanUserAddRows="False"
+                                  IsReadOnly="True"
+                                  >
                             <DataGrid.Columns>
                                 <DataGridCheckBoxColumn Width="40"/>
-                                <DataGridTextColumn Header="File Name" Binding="{Binding FileName}" Width="*"/>
-                                <DataGridTextColumn Header="Ext" Binding="{Binding Extension}" Width="50"/>
-                                <DataGridTextColumn Header="Hash" Binding="{Binding Hash}" Width="110"/>
-                                <DataGridTextColumn Header="Parent Folder" Binding="{Binding ParentFolder}" Width="140"/>
+                                <DataGridTextColumn Header="File Name" Binding="{Binding FileName}" Width="150"/>
+                                <DataGridTextColumn Header="Ext" Binding="{Binding Extension}" Width="SizeToCells"/>
+                                <DataGridTextColumn Header="Hash" Binding="{Binding FileHash}" Width="50"/>
+                                <DataGridTextColumn Header="Parent Folder" Binding="{Binding FolderPath}" Width="140"/>
                                 <DataGridTemplateColumn Header="Actions" Width="80">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
@@ -232,10 +264,7 @@
             <!-- COLUMNAS: BARRAS -->
             <!-- ========================================== -->
             <Border Grid.Column="1" BorderBrush="{StaticResource Bar}" 
-                    BorderThickness="1" Width="2" VerticalAlignment="Stretch">                
-            </Border>
-            <Border Grid.Column="3" BorderBrush="{StaticResource Bar}" 
-        BorderThickness="1" Width="2" VerticalAlignment="Stretch">
+                BorderThickness="1" Width="2" VerticalAlignment="Stretch">
             </Border>
         </Grid>
     </Grid>

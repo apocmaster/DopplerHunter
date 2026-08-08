@@ -41,7 +41,7 @@ namespace DopplerHunter.ViewModels
                 {
                     _includeSubdirectories = value;
                     // Notifica a la UI que el estado del CheckBox ha cambiado [2, 5]
-                    Debug.WriteLine($"IncludeSubdirectories: {_includeSubdirectories}");
+                    Debug.WriteLine($"IncludeSubdirectories {Name}: {_includeSubdirectories}");
                     OnPropertyChanged();
                 }
             }
