@@ -43,11 +43,17 @@ namespace DopplerHunter.Models
         /// <summary>
         /// Clave compuesta para agrupar duplicados (tamaño + hash).
         /// </summary>
-        public string DuplicateKey => $"{FileSize}_{FileHash}";
+        public bool IsFileDuplicated { get; set; }
 
+        /// <summary>
+        ///
+        /// </summary>
         public string FolderPath { get; set; } = string.Empty;
 
-        public string Extension { get; set; } = string.Empty;  
+        public string Extension { get; set; } = string.Empty;
+
+        public int DuplicateIndex { get; set; }
+
 
         /// <summary>
         /// Obtiene el tamaño formateado en KB/MB/GB.

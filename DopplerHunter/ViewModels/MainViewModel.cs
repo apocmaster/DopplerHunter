@@ -1,14 +1,11 @@
 ﻿using DopplerHunter.Commands;
 using DopplerHunter.Models;
-using System;
-using System.Collections.Generic;
+using DopplerHunter.Services;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Security.Cryptography;
-using System.Text;
-using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
 
@@ -66,20 +63,31 @@ namespace DopplerHunter.ViewModels
         public ICommand ClearFoldersFromSearchCommand { get; }
         public ICommand ScanForDuplicatesCommand { get; }
 
+        public ICommand OpenFileCommand { get; }
+
         private string _statusMessage = string.Empty;
+        private readonly IDriveService _driveService;
+
         public string StatusMessage 
         { 
             get => _statusMessage;
             set { _statusMessage = value; OnPropertyChanged(); } 
         }
 
-        public MainViewModel()
+        public MainViewModel() : this(new DriveService())
         {
+        }
+
+        public MainViewModel(IDriveService driveService)
+        {
+            _driveService = driveService;
+
             ToggleExpandCommand = new RelayCommand(async (p) => await OnToggleExpandCommand(p));
             SelectFolderForSearchCommand = new RelayCommand(OnSelectFolderForSearchCommand);
             ExcludeFolderFromSearchCommand = new RelayCommand(OnExcludeFolderFromSearchCommand);
             ClearFoldersFromSearchCommand = new RelayCommand(OnClearFoldersFromSearchCommand);
             ScanForDuplicatesCommand = new RelayCommand(async (p) => await OnScanForDuplicatesCommand(p));
+            OpenFileCommand = new RelayCommand(async (p) => await OnOpenFileCommand(p.ToString()!));
 
             FilesFoundView = CollectionViewSource.GetDefaultView(FilesFound);
             FilesFoundView.SortDescriptions.Add(new SortDescription(nameof(FileMetadata.FileHash), ListSortDirection.Ascending));
@@ -87,11 +95,8 @@ namespace DopplerHunter.ViewModels
             LoadDrives();
         }
 
-        private void LoadDrives()
-        {
-            foreach (var drive in DriveInfo.GetDrives().Where(d => d.IsReady)) 
-                Drives.Add(new FileSystemItemViewModel(drive.Name, drive.RootDirectory.FullName, true));
-        }
+
+        #region Controls
 
         private async Task OnToggleExpandCommand(object parameter)
         {
@@ -102,6 +107,14 @@ namespace DopplerHunter.ViewModels
             }
         }
 
+        #endregion
+
+
+        #region Commands and Actions
+
+        // ==================================
+        // Directories Actions
+        // ==================================
         private void OnSelectFolderForSearchCommand(object parameter)
         {
             if (parameter is FileSystemItemViewModel item)
@@ -112,15 +125,8 @@ namespace DopplerHunter.ViewModels
                     StatusMessage = $"Added folder to search: {item.FullPath}";
                     Debug.WriteLine($"Added folder to search: {item.FullPath}");
                 }
-                else
-                {
-                    StatusMessage = $"Folder is already in the search list: {item.FullPath}";
-                    Debug.WriteLine($"Folder is already in the search list: {item.FullPath}");
-                }
             }
         }
-
-        #region Directories Actions
 
         private void OnExcludeFolderFromSearchCommand(object parameter)
         {
@@ -147,9 +153,29 @@ namespace DopplerHunter.ViewModels
             Debug.WriteLine("Cleared all selected folders.");
         }
 
-        #endregion
-
-        #region Files Actions
+        //=================================
+        // Files Actions
+        //=================================
+        private async Task OnOpenFileCommand(string parameter)
+        { 
+            if(File.Exists(parameter))
+            {
+                try
+                {
+                    Process.Start(new ProcessStartInfo(parameter) { UseShellExecute = true });
+                    StatusMessage = $"Opened file: {parameter}";
+                }
+                catch (Exception ex)
+                {
+                    StatusMessage = $"Error opening file: {ex.Message}";
+                }
+            }
+            else
+            {
+                StatusMessage = $"File does not exist: {parameter}";
+            }
+            Debug.WriteLine("Opening file.");
+        }
 
         /// <summary>
         /// Searches for duplicate files in the selected folders. It clears the previous search results, resets the counters, and initiates a search in each folder, optionally including subdirectories.
@@ -186,8 +212,55 @@ namespace DopplerHunter.ViewModels
                         Debug.WriteLine($"Possible duplicate found: {file.FullPath} (Size: {file.FileSize})");
                 }
 
+                var duplicates = FilesFound
+                    .Where(f => f.IsHashCalculated && !string.IsNullOrEmpty(f.FileHash))
+                    .GroupBy(f => f.FileHash)
+                    .Where(g => g.Count() > 1)
+                    .SelectMany(g => g);
+
+                foreach (var file in duplicates)
+                {
+                    file.IsFileDuplicated = true;
+                    Debug.WriteLine($"Duplicate found: {file.FullPath} (Hash: {file.FileHash})");
+                }
+
+                var grouped = FilesFound
+                .Where(f => f.IsFileDuplicated)
+                .GroupBy(f => f.FileHash)
+                .Select(g => g.OrderBy(f => f.FolderPath))
+                ;
+
+                foreach (var group in grouped)
+                {
+                    int index = 1;
+                    foreach (var file in group)
+                    {
+                        file.DuplicateIndex = index++;
+                    }
+                }
+
+
                 OnPropertyChanged(nameof(FilesFound)); //notificar los cambios
+                FilesFoundView.Filter = f => ((FileMetadata)f).IsFileDuplicated; // Filter to show only duplicates
                 FilesFoundView.Refresh();
+
+
+                TotalDuplicatesFound = FilesFound.Count(f => f.IsFileDuplicated == true);
+                OnPropertyChanged(nameof(TotalDuplicatesFound));
+            }
+        }
+
+        #endregion
+
+        /// <summary>
+        /// Loads the available drives on the system and adds them to the Drives collection. It filters out drives that are not ready (e.g., empty CD/DVD drives) and creates a FileSystemItemViewModel for each ready drive.
+        /// </summary>
+        private void LoadDrives()
+        {
+            var drives = _driveService.GetDrives().Where(d => d.IsReady);
+            foreach (var drive in drives)
+            {
+                Drives.Add(new FileSystemItemViewModel(drive.Name, drive.RootDirectory.FullName, true));
             }
         }
 
@@ -286,6 +359,6 @@ namespace DopplerHunter.ViewModels
             return BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant();
         }
 
-        #endregion
+        
     }
 }

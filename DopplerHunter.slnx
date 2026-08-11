@@ -1,3 +1,4 @@
 <Solution>
+  <Project Path="DopplerHunter.Tests/DopplerHunter.Tests.csproj" Id="cec750dd-c5c3-48df-9f54-d326516c7ff1" />
   <Project Path="DopplerHunter/DopplerHunter.csproj" />
 </Solution>

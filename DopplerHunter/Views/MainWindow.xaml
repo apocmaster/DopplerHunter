@@ -4,15 +4,18 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:DopplerHunter.ViewModels"
-        
+        xmlns:converters="clr-namespace:DopplerHunter.Converters"
         mc:Ignorable="d"
         WindowStartupLocation="CenterScreen"
         Background="{StaticResource AppBackground}"
         Title="Doopple Hunter" Height="620" Width="1140">
     <Window.DataContext>
-        <local:MainViewModel/>
+        <local:MainViewModel/>        
     </Window.DataContext>
-    
+    <Window.Resources>
+        <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+    </Window.Resources>
+
     <Grid Margin="16">
         <Grid.RowDefinitions>
             <!-- Header Top Bar -->
@@ -90,7 +93,7 @@
                         Command="{Binding ToggleExpandCommand}" 
                         CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=TreeView}, Path=SelectedItem}"/>
                                     <KeyBinding Key="Enter" 
-                        Command="{Binding AddFolderToSearchCommand}" 
+                        Command="{Binding SelectFolderForSearchCommand}" 
                         CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=TreeView}, Path=SelectedItem}"/>
                                 </TreeView.InputBindings>
                             </TreeView>
@@ -116,14 +119,14 @@
                                 <TextBlock Text="GLOBAL CONTROLS" FontSize="11" FontWeight="Bold" Foreground="{StaticResource TextSecondary}" Margin="0,0,0,8"/>
                                 <WrapPanel>
                                     <Button Style="{StaticResource SecondaryButtonStyle}" Margin="0,0,4,4"
-                            Command="{Binding ClearSelectionCommand}">
+                            Command="{Binding ClearFoldersFromSearchCommand}">
                                         <StackPanel Orientation="Horizontal">
                                             <Path Data="{StaticResource ClearSelectionGeometry}" Width="20" Height="20" Stretch="Uniform" Margin="0,0,4,0"  Stroke="{StaticResource TextSecondary}"/>
                                             <TextBlock Text="Clear"/>
                                         </StackPanel>
                                     </Button>
                                     <Button Style="{StaticResource PrimaryButtonStyle}" Margin="0,0,0,4"
-                            Command="{Binding SearchDuplicatesCommand}">
+                            Command="{Binding ScanForDuplicatesCommand}">
                                         <StackPanel  Orientation="Horizontal">
                                             <Path Data="{StaticResource DuplicateGeometry}" Width="20" Height="20" Stretch="Uniform" Margin="0,0,4,0"  Stroke="{StaticResource AppBackground}"/>
                                             <TextBlock Text="Search Duplicates" />
@@ -135,7 +138,7 @@
                     </StackPanel>
 
                     <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-                        <ItemsControl ItemsSource="{Binding FoldersToSearch}">
+                        <ItemsControl ItemsSource="{Binding SelectedSearchFolders}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
                                     <Border Style="{StaticResource CardPanelStyle}" Margin="0,0,0,10">
@@ -151,7 +154,7 @@
                                             <DockPanel Grid.Row="2">
                                                 <CheckBox Content="Scan Subdirectories" IsChecked="{Binding IncludeSubdirectories, Mode=TwoWay}" VerticalAlignment="Center"/>
                                                 <Button  
-                                    Command="{Binding DataContext.RemoveFolderCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                    Command="{Binding DataContext.ExcludeFolderFromSearchCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                                     CommandParameter="{Binding}"
                                     Foreground="{StaticResource DangerAccent}" 
                                     HorizontalAlignment="Right" Background="Transparent" 
@@ -202,6 +205,7 @@
                             <TextBlock Text="{Binding TotalFoldersFound}" FontSize="22" FontWeight="Bold" Foreground="{StaticResource TextPrimary}" Margin="0,4,0,0"/>
                         </StackPanel>
                     </Border>
+                    <!--<controls:CardStat Title="Directories Scanned" Value="{Binding TotalFoldersFound}" Variant="Warning"/>-->
                     <Border Style="{StaticResource CardPanelStyle}" Margin="3,0,3,0">
                         <StackPanel>
                             <TextBlock Text="Total Files" FontSize="11" Foreground="{StaticResource TextSecondary}"/>
@@ -229,7 +233,7 @@
                                     <ComboBoxItem Content="All Duplicates"/>
                                 </ComboBox>
                             </StackPanel>
-                            <Button Content="DELETE ALL SELECTED DUPLICATES" Style="{StaticResource PrimaryButtonStyle}" Background="{StaticResource DangerAccent}" DockPanel.Dock="Right" HorizontalAlignment="Right"/>
+                            <Button Content="DELETE ALL SELECTED DUPLICATES" Style="{StaticResource DangerButtonStyle}" DockPanel.Dock="Right" HorizontalAlignment="Right"/>
                         </DockPanel>
 
                         <!-- Tabla con agrupamiento de duplicados -->
@@ -237,18 +241,60 @@
                                   GridLinesVisibility="Horizontal" 
                                   HorizontalGridLinesBrush="{StaticResource BorderBrushLight}" 
                                   Background="Transparent" BorderThickness="0"
-                                  ItemsSource="{Binding FilesView}" 
+                                  ItemsSource="{Binding FilesFoundView}" 
                                   CanUserSortColumns="True"
-                                  CanUserAddRows="False"
-                                  IsReadOnly="True"
+                                  CanUserAddRows="False"                                  
+                                  FrozenColumnCount="1"
+                                  EnableRowVirtualization="True"
+                                  EnableColumnVirtualization="True"
+                                  VirtualizingPanel.IsVirtualizing="True"
+                                  VirtualizingPanel.VirtualizationMode="Recycling"
                                   >
                             <DataGrid.Columns>
-                                <DataGridCheckBoxColumn Width="40"/>
-                                <DataGridTextColumn Header="File Name" Binding="{Binding FileName}" Width="150"/>
-                                <DataGridTextColumn Header="Ext" Binding="{Binding Extension}" Width="SizeToCells"/>
-                                <DataGridTextColumn Header="Hash" Binding="{Binding FileHash}" Width="50"/>
-                                <DataGridTextColumn Header="Parent Folder" Binding="{Binding FolderPath}" Width="140"/>
-                                <DataGridTemplateColumn Header="Actions" Width="80">
+                                <DataGridCheckBoxColumn Width="40" IsReadOnly="False"/>
+                                <DataGridTextColumn Header="Dup N°" Binding="{Binding DuplicateIndex}" Width="SizeToCells" IsReadOnly="True"/> 
+                                <DataGridTemplateColumn Header="File Name" Width="SizeToCells" IsReadOnly="True">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <TextBlock>
+                                                <Hyperlink Command="{Binding DataContext.OpenFileCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                           CommandParameter="{Binding FullPath}">
+                                                   
+                                                    <TextBlock Text="{Binding FileName}">
+                                                        <TextBlock.Style>
+                                                            <Style TargetType="TextBlock"> 
+                                                                <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+                                                            </Style>        
+                                                        </TextBlock.Style>
+                                                    </TextBlock>
+                                                </Hyperlink>
+                                            </TextBlock>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                                <DataGridTextColumn Header="Ext" Binding="{Binding Extension}" Width="SizeToCells" IsReadOnly="True"/>
+                                <DataGridTextColumn Header="Size" Binding="{Binding FileSizeFormatted}" Width="Auto" IsReadOnly="True">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="TextAlignment" Value="Right"/>
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+                                <DataGridTemplateColumn Header="Dup" Width="40" IsReadOnly="True">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <Path Data="{StaticResource FilesDuplicatedGeometry}"
+                                                  
+                                                  Visibility="{Binding IsFileDuplicated, Converter={StaticResource BoolToVisibilityConverter}}"
+                                                  Stroke="{StaticResource TextPrimary}"
+                                                  StrokeThickness="1" Width="20" Height="20" Stretch="Uniform"/>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>                                    
+                                </DataGridTemplateColumn>
+                                <DataGridTextColumn Header="Hash" Binding="{Binding FileHash}" Width="50" IsReadOnly="True"/>
+                                <DataGridTextColumn Header="Parent Folder" Binding="{Binding FolderPath}" Width="140" IsReadOnly="True"/>
+
+                                <DataGridTemplateColumn Header="Actions" Width="80" IsReadOnly="True">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
                                             <Button Content="DELETE" Foreground="{StaticResource DangerAccent}" Background="Transparent" BorderThickness="0" FontWeight="Bold" Cursor="Hand"/>
