@@ -1,0 +1,33 @@
+name: Continuos Integration - WPF Application
+
+on: 
+  pull_request:
+    branches: [ develop ]
+
+jobs:
+  build-and-test:
+    # 1. Get a windows space
+    runs-on: windows-latest
+
+    steps:
+      # Step 1: Checkout code of repository
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Step2: Environment settings .net on vm
+      - name: .NET SDK Install
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      # Step 3: Restore dependencies/nuget packages
+      - name: NuGet packages restore
+        run: dotnet restore
+
+      # step 4: Build WPF project
+      - name: Build WPF solution
+        run: dotnet build --configuration Release --no-restore
+
+      # Step 5: Execute Unit test
+      - name: Execute Unit Tests
+        run: dotnet test --configuration Release --no-build --verbosity normal

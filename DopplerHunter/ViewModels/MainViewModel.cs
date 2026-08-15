@@ -5,6 +5,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
+using System.Reflection.Metadata;
 using System.Security.Cryptography;
 using System.Windows.Data;
 using System.Windows.Input;
@@ -13,6 +14,7 @@ namespace DopplerHunter.ViewModels
 {
     public class MainViewModel: BaseViewModel
     {
+        #region Properties
         public ObservableCollection<FileSystemItemViewModel> Drives { get; } = [];
         public ObservableCollection<FileSystemItemViewModel> SelectedSearchFolders { get; } = [];
         public ObservableCollection<FileMetadata> FilesFound { get; } = [];
@@ -57,6 +59,21 @@ namespace DopplerHunter.ViewModels
             }
         }
 
+        private string _statusMessage = string.Empty;
+        public string StatusMessage
+        {
+            get => _statusMessage;
+            set 
+            { 
+                _statusMessage = value;
+                Debug.WriteLine(_statusMessage); // TODO : Remove this line after debugging
+                OnPropertyChanged(); 
+            }
+        }
+
+        #endregion
+
+        #region Commands
         public ICommand ToggleExpandCommand { get; set; }
         public ICommand SelectFolderForSearchCommand { get; }
         public ICommand ExcludeFolderFromSearchCommand { get; }
@@ -65,22 +82,23 @@ namespace DopplerHunter.ViewModels
 
         public ICommand OpenFileCommand { get; }
 
-        private string _statusMessage = string.Empty;
+        #endregion
+
+        #region Services
         private readonly IDriveService _driveService;
+        private readonly IFileService _fileService;
 
-        public string StatusMessage 
-        { 
-            get => _statusMessage;
-            set { _statusMessage = value; OnPropertyChanged(); } 
-        }
+        #endregion
 
-        public MainViewModel() : this(new DriveService())
+        #region Constructor
+        public MainViewModel() : this(new DriveService(), new FileService())
         {
         }
 
-        public MainViewModel(IDriveService driveService)
+        public MainViewModel(IDriveService driveService, IFileService fileService)
         {
             _driveService = driveService;
+            _fileService = fileService;
 
             ToggleExpandCommand = new RelayCommand(async (p) => await OnToggleExpandCommand(p));
             SelectFolderForSearchCommand = new RelayCommand(OnSelectFolderForSearchCommand);
@@ -95,6 +113,7 @@ namespace DopplerHunter.ViewModels
             LoadDrives();
         }
 
+        #endregion 
 
         #region Controls
 
@@ -123,7 +142,6 @@ namespace DopplerHunter.ViewModels
                 {
                     SelectedSearchFolders.Add(item);
                     StatusMessage = $"Added folder to search: {item.FullPath}";
-                    Debug.WriteLine($"Added folder to search: {item.FullPath}");
                 }
             }
         }
@@ -132,17 +150,9 @@ namespace DopplerHunter.ViewModels
         {
             if (parameter is FileSystemItemViewModel item)
             {
-                if (SelectedSearchFolders.Contains(item))
-                {
-                    SelectedSearchFolders.Remove(item);
-                    StatusMessage = $"Removed folder from search: {item.FullPath}";
-                    Debug.WriteLine($"Removed folder from search: {item.FullPath}");
-                }
-                else
-                {
-                    StatusMessage = $"Folder not found in the search list: {item.FullPath}";
-                    Debug.WriteLine($"Folder not found in the search list: {item.FullPath}");
-                }
+                StatusMessage = (SelectedSearchFolders.Remove(item)) ?
+                    $"Removed folder from search: {item.FullPath}" :
+                    $"Folder not found in the search list: {item.FullPath}";                
             }
         }
 
@@ -150,7 +160,6 @@ namespace DopplerHunter.ViewModels
         {
             SelectedSearchFolders.Clear();
             StatusMessage = "Cleared all selected folders.";
-            Debug.WriteLine("Cleared all selected folders.");
         }
 
         //=================================
@@ -158,23 +167,13 @@ namespace DopplerHunter.ViewModels
         //=================================
         private async Task OnOpenFileCommand(string parameter)
         { 
-            if(File.Exists(parameter))
-            {
-                try
-                {
-                    Process.Start(new ProcessStartInfo(parameter) { UseShellExecute = true });
-                    StatusMessage = $"Opened file: {parameter}";
-                }
-                catch (Exception ex)
-                {
-                    StatusMessage = $"Error opening file: {ex.Message}";
-                }
-            }
-            else
+            if(_fileService.IsFileNotExists(parameter))
             {
                 StatusMessage = $"File does not exist: {parameter}";
+                return;
             }
-            Debug.WriteLine("Opening file.");
+                        
+            StatusMessage = await _fileService.OpenFileAsync(parameter);
         }
 
         /// <summary>
@@ -184,32 +183,34 @@ namespace DopplerHunter.ViewModels
         /// <returns></returns>
         private async Task OnScanForDuplicatesCommand(object parameter)
         {
-            // Implement duplicate search logic here
-            Debug.WriteLine("Searching files in folders.");
-            if(SelectedSearchFolders.Count > 0)
+            StatusMessage = "Searching files in folders.";
+            if(IsThereAnyFolderSelected())
             {
-                FilesFound.Clear();
+                CleanFilesFoundCollection();
                 ResetCounters();
+
                 // Search for files in each selected folders
-                foreach (var folder in SelectedSearchFolders)
-                {
-                    await SearchFilesInDirectory(folder.FullPath, folder.IncludeSubdirectories);
-                    Debug.WriteLine($"Searching in folder: {folder.FullPath}");
-                    // Call your file search service here
-                }
+                await ScanSelectedFoldersForFiles();
                 
+
                 var possibleDuplicates = FilesFound
                     .GroupBy(f => f.FileSize)
                     .Where(g => g.Count() > 1)
                     .SelectMany(g => g);
 
+                int counter = 0;
                 foreach (var file in possibleDuplicates)
                 {
-                    var hash = ComputeMD5(file.FullPath);
+                    var hash = await _fileService.ComputeXXHash(file.FullPath);
                     file.FileHash = hash;
                     file.IsHashCalculated = true;                    
-                        
-                        Debug.WriteLine($"Possible duplicate found: {file.FullPath} (Size: {file.FileSize})");
+                    
+                    counter++;
+                    if (counter % 10 == 0)
+                    {
+                        await Task.Yield(); // Yield control to keep UI responsive
+                    }
+                    //StatusMessage = $"Possible duplicate found: {file.FullPath} (Size: {file.FileSize})";
                 }
 
                 var duplicates = FilesFound
@@ -221,7 +222,7 @@ namespace DopplerHunter.ViewModels
                 foreach (var file in duplicates)
                 {
                     file.IsFileDuplicated = true;
-                    Debug.WriteLine($"Duplicate found: {file.FullPath} (Hash: {file.FileHash})");
+                    StatusMessage = $"Duplicate found: {file.FullPath} (Hash: {file.FileHash})";
                 }
 
                 var grouped = FilesFound
@@ -253,6 +254,15 @@ namespace DopplerHunter.ViewModels
         #endregion
 
         /// <summary>
+        /// Checks if there are any folders selected for searching. It returns true if the SelectedSearchFolders collection has one or more items, otherwise false.
+        /// </summary>
+        /// <returns></returns>
+        private bool IsThereAnyFolderSelected()
+        {
+            return SelectedSearchFolders.Count > 0;
+        }
+
+        /// <summary>
         /// Loads the available drives on the system and adds them to the Drives collection. It filters out drives that are not ready (e.g., empty CD/DVD drives) and creates a FileSystemItemViewModel for each ready drive.
         /// </summary>
         private void LoadDrives()
@@ -264,8 +274,18 @@ namespace DopplerHunter.ViewModels
             }
         }
 
+        private async Task ScanSelectedFoldersForFiles()
+        {
+            foreach (var folder in SelectedSearchFolders)
+            {
+                await SearchFilesInDirectory(folder.FullPath, folder.IncludeSubdirectories);
+                await UpdateTotalFilesFound();
+            }
+        }
+
+
         /// <summary>
-        /// Searches for files in the specified directory and optionally in its subdirectories. It registers the contents of each directory found.
+        /// Searches for files in the specified directory. If includeSubdirectories is true, it recursively searches through all subdirectories. It registers the contents of the directory by adding its files to the FilesFound collection and updating the total counts of files and folders found. 
         /// </summary>
         /// <param name="folder"></param>
         /// <param name="includeSubdirectories"></param>
@@ -274,15 +294,24 @@ namespace DopplerHunter.ViewModels
         {
             if (includeSubdirectories)
             {
-                var subDirectories = Directory.GetDirectories(folder);
-
-                foreach (var subDir in subDirectories)
-                {
-                    await SearchFilesInDirectory(subDir, includeSubdirectories);
-                }
+                await ProcessSubdirectories(folder);
             }
 
+            await IncreaseTotalFoldersFound();
             await RegisterDirectoryContents(folder);            
+        }
+
+        /// <summary>
+        /// Processes the subdirectories of the specified folder by recursively searching for files in each subdirectory. It calls the SearchFilesInDirectory method for each subdirectory found.
+        /// </summary>
+        /// <param name="folder"></param>
+        /// <returns></returns>
+        private async Task ProcessSubdirectories(string folder)
+        {
+            foreach (var subDir in Directory.GetDirectories(folder))
+            {
+                await SearchFilesInDirectory(subDir, true);
+            }
         }
 
         /// <summary>
@@ -293,27 +322,25 @@ namespace DopplerHunter.ViewModels
         private async Task RegisterDirectoryContents(string folder)
         {
             var directoryFiles = new DirectoryInfo(folder);
-            await AddFilesToFoundCollection(directoryFiles.GetFiles());
-
-
-            IncreaseTotalFoldersFound();
-            UpdateTotalFilesFound();
+            await AddFilesToFoundCollection(directoryFiles.GetFiles());            
         }
 
         /// <summary>
         /// Increases the total count of folders found by one.
         /// </summary>
-        private void IncreaseTotalFoldersFound()
+        private async Task IncreaseTotalFoldersFound()
         {
             TotalFoldersFound++;
+            OnPropertyChanged(nameof(TotalFoldersFound));
         }
 
         /// <summary>
         /// Updates the total count of files found based on the current count of the FilesFound collection.
         /// </summary>
-        private void UpdateTotalFilesFound()
+        private async Task UpdateTotalFilesFound()
         {
             TotalFilesFound = FilesFound.Count;
+            OnPropertyChanged(nameof(TotalFilesFound));
         }
 
         /// <summary>
@@ -323,6 +350,16 @@ namespace DopplerHunter.ViewModels
         {
             TotalFilesFound = 0;
             TotalFoldersFound = 0;
+            TotalDuplicatesFound = 0;
+        }
+
+        /// <summary>
+        /// Clears the FilesFound collection and notifies that the property has changed.
+        /// </summary>
+        private void CleanFilesFoundCollection()
+        {
+            FilesFound.Clear();
+            OnPropertyChanged(nameof(FilesFound));
         }
 
         /// <summary>
@@ -351,14 +388,5 @@ namespace DopplerHunter.ViewModels
             }
         }
 
-        public static string ComputeMD5(string filePath)
-        {
-            using var md5 = MD5.Create();
-            using var stream = File.OpenRead(filePath);
-            var hash = md5.ComputeHash(stream);
-            return BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant();
-        }
-
-        
     }
 }
