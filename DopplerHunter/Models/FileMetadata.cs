@@ -1,5 +1,7 @@
+using DopplerHunter.Utilities;
 using System;
 using System.IO;
+using System.Windows.Navigation;
 
 namespace DopplerHunter.Models
 {
@@ -53,6 +55,13 @@ namespace DopplerHunter.Models
         public string Extension { get; set; } = string.Empty;
 
         public int DuplicateIndex { get; set; }
+
+        public string DisplayName => FileNameFormatter.Shorten(FileName);
+
+        public string? ToolTipName =>
+            !string.IsNullOrEmpty(FileName) && FileName.Length > 50
+                ? FileName
+                : null; 
 
 
         /// <summary>

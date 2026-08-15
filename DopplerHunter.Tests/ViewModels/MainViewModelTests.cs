@@ -14,9 +14,10 @@ namespace DopplerHunter.Tests.ViewModels
             // Arrange - Crear mock del servicio
             var mockDriveService = Substitute.For<IDriveService>();
             mockDriveService.GetDrives().Returns(new[] { new DriveInfo("C") });
+            var mockFileService = Substitute.For<IFileService>();
 
             // Act
-            var viewModel = new MainViewModel(mockDriveService);
+            var viewModel = new MainViewModel(mockDriveService, mockFileService);
 
             // Assert
             Assert.NotNull(viewModel.Drives);
