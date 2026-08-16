@@ -128,7 +128,7 @@
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
 
-                            <TextBlock Grid.Column="0" Text="SELECTED PATHS" Style="{StaticResource SectionHeaderStyle}"/>
+                            <TextBlock Grid.Column="0" Text="{Binding SelectedSearchFolders.Count, StringFormat='SELECTED PATHS: ({0})'}" Style="{StaticResource SectionHeaderStyle}"/>
                             <TextBlock Grid.Column="1" TextAlignment="Right">
                                 <Hyperlink Command="{Binding ClearFoldersFromSearchCommand}" Cursor="Hand">
                                     <StackPanel Orientation="Horizontal">
