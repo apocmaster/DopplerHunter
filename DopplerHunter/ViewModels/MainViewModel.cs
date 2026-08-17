@@ -108,8 +108,13 @@ namespace DopplerHunter.ViewModels
             OpenFileCommand = new RelayCommand(async (p) => await OnOpenFileCommand(p.ToString()!));
 
             FilesFoundView = CollectionViewSource.GetDefaultView(FilesFound);
+            
             FilesFoundView.SortDescriptions.Add(new SortDescription(nameof(FileMetadata.FileHash), ListSortDirection.Ascending));
             FilesFoundView.SortDescriptions.Add(new SortDescription(nameof(FileMetadata.FolderPath), ListSortDirection.Ascending));
+
+            FilesFound.CollectionChanged += (s, e) => ApplyGrouping();
+
+            ApplyGrouping();
             LoadDrives();
         }
 
@@ -388,5 +393,17 @@ namespace DopplerHunter.ViewModels
             }
         }
 
+        private void ApplyGrouping()
+        {
+            if (FilesFoundView == null) return;
+
+            FilesFoundView.GroupDescriptions.Clear();
+
+            if (FilesFound.Count > 0)
+            {
+                FilesFoundView.GroupDescriptions.Add(
+                    new PropertyGroupDescription(nameof(FileMetadata.FileHash)));
+            }
+        }
     }
 }
