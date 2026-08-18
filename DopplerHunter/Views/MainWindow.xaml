@@ -279,8 +279,7 @@
                                   VirtualizingPanel.IsVirtualizing="True"
                                   VirtualizingPanel.VirtualizationMode="Recycling"
                                   VirtualizingPanel.IsVirtualizingWhenGrouping="True"                                  
-                                  ColumnHeaderHeight="32"
-                                  
+                                  ColumnHeaderHeight="32"                                   
                                   >
                             <DataGrid.GroupStyle>
                                 <GroupStyle>
@@ -304,8 +303,8 @@
                             </DataGrid.GroupStyle>                            
                             <DataGrid.Columns>
                                 <DataGridCheckBoxColumn Width="40" IsReadOnly="False"/>
-                                <DataGridTextColumn Header="Dup N°" Binding="{Binding DuplicateIndex}" Width="SizeToCells" IsReadOnly="True"/>
-                                <DataGridTemplateColumn Header="File Name" Width="SizeToCells" IsReadOnly="True">
+                                <DataGridTextColumn Header="Dup N°" Binding="{Binding DuplicateIndex}" Width="Auto" IsReadOnly="True"/>
+                                <DataGridTemplateColumn Header="File Name" Width="Auto" IsReadOnly="True">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
                                             <TextBlock>
@@ -325,27 +324,15 @@
                                         </DataTemplate>
                                     </DataGridTemplateColumn.CellTemplate>
                                 </DataGridTemplateColumn>
-                                <DataGridTextColumn Header="Ext" Binding="{Binding Extension}" Width="SizeToCells" IsReadOnly="True"/>
+                                <DataGridTextColumn Header="Ext" Binding="{Binding Extension}" Width="Auto" IsReadOnly="True"/>
                                 <DataGridTextColumn Header="Size" Binding="{Binding FileSizeFormatted}" Width="Auto" IsReadOnly="True">
                                     <DataGridTextColumn.ElementStyle>
                                         <Style TargetType="TextBlock">
                                             <Setter Property="TextAlignment" Value="Right"/>
                                         </Style>
                                     </DataGridTextColumn.ElementStyle>
-                                </DataGridTextColumn>
-                                <DataGridTemplateColumn Header="Dup" Width="40" IsReadOnly="True">
-                                    <DataGridTemplateColumn.CellTemplate>
-                                        <DataTemplate>
-                                            <Path Data="{StaticResource FilesDuplicatedGeometry}"
-                                                  
-                                                  Visibility="{Binding IsFileDuplicated, Converter={StaticResource BoolToVisibilityConverter}}"
-                                                  Stroke="{StaticResource TextPrimary}"
-                                                  StrokeThickness="1" Width="20" Height="20" Stretch="Uniform"/>
-                                        </DataTemplate>
-                                    </DataGridTemplateColumn.CellTemplate>
-                                </DataGridTemplateColumn>                                
+                                </DataGridTextColumn>                                                               
                                 <DataGridTextColumn Header="Parent Folder" Binding="{Binding FolderPath}" Width="140" IsReadOnly="True"/>
-
                                 <DataGridTemplateColumn Header="Actions" Width="80" IsReadOnly="True">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
