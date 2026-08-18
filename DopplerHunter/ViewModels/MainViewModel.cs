@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection.Metadata;
 using System.Security.Cryptography;
+using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
 
@@ -70,6 +71,8 @@ namespace DopplerHunter.ViewModels
                 OnPropertyChanged(); 
             }
         }
+
+        private HashSet<string> _processedDirectories = new(StringComparer.OrdinalIgnoreCase);
 
         #endregion
 
@@ -193,6 +196,7 @@ namespace DopplerHunter.ViewModels
             {
                 CleanFilesFoundCollection();
                 ResetCounters();
+                ResetProcessedDirectories();
 
                 // Search for files in each selected folders
                 await ScanSelectedFoldersForFiles();
@@ -214,8 +218,7 @@ namespace DopplerHunter.ViewModels
                     if (counter % 10 == 0)
                     {
                         await Task.Yield(); // Yield control to keep UI responsive
-                    }
-                    //StatusMessage = $"Possible duplicate found: {file.FullPath} (Size: {file.FileSize})";
+                    }                    
                 }
 
                 var duplicates = FilesFound
@@ -301,6 +304,8 @@ namespace DopplerHunter.ViewModels
             {
                 await ProcessSubdirectories(folder);
             }
+            
+            if (CanProcessDirectory(folder)) return;
 
             await IncreaseTotalFoldersFound();
             await RegisterDirectoryContents(folder);            
@@ -358,6 +363,14 @@ namespace DopplerHunter.ViewModels
             TotalDuplicatesFound = 0;
         }
 
+        private bool CanProcessDirectory(string directoryPath)
+        {
+            return !_processedDirectories.Add(directoryPath);
+        }
+        private void ResetProcessedDirectories()
+        {
+            _processedDirectories.Clear();
+        }
         /// <summary>
         /// Clears the FilesFound collection and notifies that the property has changed.
         /// </summary>
@@ -387,11 +400,12 @@ namespace DopplerHunter.ViewModels
                     LastModified = file.LastWriteTime,
                     IsHashCalculated = false,
                     FolderPath = Path.GetFileName(file.DirectoryName) ?? string.Empty,
-                    Extension = Path.GetExtension(file.FullName) ?? string.Empty,
-                   
+                    Extension = Path.GetExtension(file.FullName) ?? string.Empty,                   
                 });
             }
         }
+
+        
 
         private void ApplyGrouping()
         {
