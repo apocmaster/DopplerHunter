@@ -23,7 +23,7 @@ namespace DopplerHunter.ViewModels
                 if (value != _isExpanded)
                 {
                     _isExpanded = value;
-                    OnPropertyChanged();
+                    OnPropertyChanged(nameof(IsExpanded));
                     if (_isExpanded) Expand();
                 }
             }
@@ -42,7 +42,7 @@ namespace DopplerHunter.ViewModels
                     _includeSubdirectories = value;
                     // Notifica a la UI que el estado del CheckBox ha cambiado [2, 5]
                     Debug.WriteLine($"IncludeSubdirectories {Name}: {_includeSubdirectories}");
-                    OnPropertyChanged();
+                    OnPropertyChanged(nameof(IncludeSubdirectories));
                 }
             }
         }
