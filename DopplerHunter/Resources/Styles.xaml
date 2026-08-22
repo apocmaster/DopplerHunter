@@ -314,11 +314,14 @@
     </Style>
 
     <!-- Sección Header Style -->
-    <Style x:Key="SectionHeaderStyle" TargetType="TextBlock">
-        <Setter Property="FontSize" Value="12"/>
-        <Setter Property="FontWeight" Value="Bold"/>
-        <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
-        <Setter Property="Margin" Value="0,0,0,8"/>
+    <Style x:Key="SectionHeaderBaseStyle">
+        <Setter Property="TextElement.FontSize" Value="12"/>
+        <Setter Property="TextElement.FontWeight" Value="Bold"/>
+        <Setter Property="TextElement.Foreground" Value="{StaticResource TextPrimary}"/>
+        <Setter Property="FrameworkElement.Margin" Value="0,0,0,8"/>
     </Style>
+
+    <Style x:Key="SectionHeaderTextBlockStyle" TargetType="TextBlock" BasedOn="{StaticResource SectionHeaderBaseStyle}" />
+    <Style x:Key="SectionHeaderLabelStyle" TargetType="Label" BasedOn="{StaticResource SectionHeaderBaseStyle}" />
 
 </ResourceDictionary>
