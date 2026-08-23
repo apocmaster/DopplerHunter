@@ -262,7 +262,11 @@
                                     </ToggleButton.Template>
                                 </ToggleButton>
                             </StackPanel>
-                            <Button Content="{Binding SelectedFilesCount, StringFormat='DELETE ALL SELECTED DUPLICATES ({0})'}" Style="{StaticResource DangerButtonStyle}" DockPanel.Dock="Right" HorizontalAlignment="Right"/>
+                            <Button Content="{Binding SelectedFilesCount}"
+                                    Style="{StaticResource DangerButtonStyle}"
+                                    DockPanel.Dock="Right"
+                                    HorizontalAlignment="Right"
+                                    Padding="10,0"/>
                         </DockPanel>
 
                         <!-- Tabla con agrupamiento de duplicados -->
