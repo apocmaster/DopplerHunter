@@ -7,16 +7,12 @@ using DopplerHunter.Services;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.IO;
-using System.Reflection.Metadata;
-using System.Security.Cryptography;
-using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
 
 namespace DopplerHunter.ViewModels
 {
-    public class MainViewModel: BaseViewModel
+    public class MainViewModel : BaseViewModel
     {
         #region Properties
         public ObservableCollection<FileSystemItemViewModel> Drives { get; } = [];
@@ -44,9 +40,9 @@ namespace DopplerHunter.ViewModels
         public long TotalFoldersFound
         {
             get { return totalFolderFound; }
-            private set { 
-                if(totalFolderFound != value)
-                totalFolderFound = value;
+            private set {
+                if (totalFolderFound != value)
+                    totalFolderFound = value;
                 OnPropertyChanged(nameof(TotalFoldersFound));
             }
         }
@@ -56,9 +52,9 @@ namespace DopplerHunter.ViewModels
         public long TotalDuplicatesFound
         {
             get { return totalDuplicatesFound; }
-            private set { 
-                if(totalDuplicatesFound != value)
-                totalDuplicatesFound = value;
+            private set {
+                if (totalDuplicatesFound != value)
+                    totalDuplicatesFound = value;
                 OnPropertyChanged(nameof(TotalDuplicatesFound));
             }
         }
@@ -67,16 +63,21 @@ namespace DopplerHunter.ViewModels
         public string StatusMessage
         {
             get => _statusMessage;
-            set 
-            { 
+            set
+            {
                 _statusMessage = value;
                 Debug.WriteLine(_statusMessage); // TODO : Remove this line after debugging
-                OnPropertyChanged(); 
+                OnPropertyChanged();
             }
         }
 
-        // TODO : Move this to DirectoryService
-        private HashSet<string> _processedDirectories = new(StringComparer.OrdinalIgnoreCase);
+        public string SelectedFilesCount 
+        {
+            get { return $"DELETE ALL SELECTED DUPLICATES ({FilesFound?.Count(x => x.IsSelected) ?? 0})"; }
+        }
+            
+            
+            
 
         #endregion
 
@@ -127,7 +128,7 @@ namespace DopplerHunter.ViewModels
             FilesFoundView.SortDescriptions.Add(new SortDescription(nameof(FileMetadata.FolderPath), ListSortDirection.Ascending));
 
             FilesFound.CollectionChanged += (s, e) => ApplyGrouping();
-            
+            FileMetadata.SelectionChanged += (_, __) => { OnPropertyChanged(nameof(SelectedFilesCount)); };  
             
 
             ApplyGrouping();
@@ -229,7 +230,6 @@ namespace DopplerHunter.ViewModels
             {
                 CleanFilesFoundCollection();
                 ResetCounters();
-                ResetProcessedDirectories();
 
                 var directories = await _directoryService.ScanDirectoriesAndSubdirectories(
                     SelectedSearchFolders.ToList());
@@ -283,11 +283,7 @@ namespace DopplerHunter.ViewModels
             TotalFoldersFound = 0;
             TotalDuplicatesFound = 0;
         }
-
-        private void ResetProcessedDirectories()
-        {
-            _processedDirectories.Clear();
-        }
+                
         /// <summary>
         /// Clears the FilesFound collection and notifies that the property has changed.
         /// </summary>

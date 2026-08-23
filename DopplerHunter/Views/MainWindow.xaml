@@ -262,7 +262,11 @@
                                     </ToggleButton.Template>
                                 </ToggleButton>
                             </StackPanel>
-                            <Button Content="DELETE ALL SELECTED DUPLICATES" Style="{StaticResource DangerButtonStyle}" DockPanel.Dock="Right" HorizontalAlignment="Right"/>
+                            <Button Content="{Binding SelectedFilesCount}"
+                                    Style="{StaticResource DangerButtonStyle}"
+                                    DockPanel.Dock="Right"
+                                    HorizontalAlignment="Right"
+                                    Padding="10,0"/>
                         </DockPanel>
 
                         <!-- Tabla con agrupamiento de duplicados -->
@@ -306,7 +310,7 @@
                                 </GroupStyle>
                             </DataGrid.GroupStyle>                            
                             <DataGrid.Columns>
-                                <DataGridCheckBoxColumn Width="40" IsReadOnly="False"/>
+                                <DataGridCheckBoxColumn Width="40" IsReadOnly="False" Binding="{Binding IsSelected, Mode=TwoWay}"/>
                                 <DataGridTextColumn Header="Dup N°" Binding="{Binding DuplicateIndex}" Width="Auto" IsReadOnly="True"/>
                                 <DataGridTemplateColumn Header="File Name" Width="Auto" IsReadOnly="True">
                                     <DataGridTemplateColumn.CellTemplate>
