@@ -61,8 +61,10 @@ namespace DopplerHunter.Models
         public string? ToolTipName =>
             !string.IsNullOrEmpty(FileName) && FileName.Length > 50
                 ? FileName
-                : null; 
+                : null;
 
+
+        public bool IsSelected { get; set; }
 
         /// <summary>
         /// Obtiene el tamaño formateado en KB/MB/GB.
