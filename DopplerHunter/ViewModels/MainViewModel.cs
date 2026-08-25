@@ -7,6 +7,7 @@ using DopplerHunter.Services;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Windows;
 using System.Windows.Data;
 using System.Windows.Input;
 
@@ -71,13 +72,18 @@ namespace DopplerHunter.ViewModels
             }
         }
 
-        public string SelectedFilesCount 
+        
+        public int SelectedFilesCountValue
         {
-            get { return $"DELETE ALL SELECTED DUPLICATES ({FilesFound?.Count(x => x.IsSelected) ?? 0})"; }
+            get { return FilesFound.Count(x => x.IsSelected); }
         }
-            
-            
-            
+
+        public string SelectedFilesCountText
+        {
+            get { return $"DELETE ALL SELECTED DUPLICATES ({SelectedFilesCountValue})"; }
+        }
+
+
 
         #endregion
 
@@ -87,8 +93,9 @@ namespace DopplerHunter.ViewModels
         public ICommand ExcludeFolderFromSearchCommand { get; }
         public ICommand ClearFoldersFromSearchCommand { get; }
         public ICommand ScanForDuplicatesCommand { get; }
-
         public ICommand OpenFileCommand { get; }
+        public ICommand DeleteSelectedFilesCommand { get; }
+
 
         #endregion
 
@@ -121,6 +128,7 @@ namespace DopplerHunter.ViewModels
             ClearFoldersFromSearchCommand = new RelayCommand(OnClearFoldersFromSearchCommand);
             ScanForDuplicatesCommand = new RelayCommand(async (p) => await OnScanForDuplicatesCommand(p));
             OpenFileCommand = new RelayCommand(async (p) => await OnOpenFileCommand(p.ToString()!));
+            DeleteSelectedFilesCommand = new RelayCommand(async (p) => await OnDeleteSelectedFiles(p));
 
             FilesFoundView = CollectionViewSource.GetDefaultView(FilesFound);
             
@@ -128,7 +136,7 @@ namespace DopplerHunter.ViewModels
             FilesFoundView.SortDescriptions.Add(new SortDescription(nameof(FileMetadata.FolderPath), ListSortDirection.Ascending));
 
             FilesFound.CollectionChanged += (s, e) => ApplyGrouping();
-            FileMetadata.SelectionChanged += (_, __) => { OnPropertyChanged(nameof(SelectedFilesCount)); };  
+            FileMetadata.SelectionChanged += (_, __) => { OnPropertyChanged(nameof(SelectedFilesCountText)); };  
             
 
             ApplyGrouping();
@@ -166,7 +174,7 @@ namespace DopplerHunter.ViewModels
 
         private void OnHashesCalulated(object? sender, HashesCalculatedEventArgs e)
         {
-            TotalDuplicatesFound = e.HasesCalculated;
+            TotalDuplicatesFound = e.HashesCalculated;
         }
 
         #endregion
@@ -248,6 +256,24 @@ namespace DopplerHunter.ViewModels
                 FilesFoundView.Filter = f => ((FileMetadata)f).IsFileDuplicated; // Filter to show only duplicates
                 FilesFoundView.Refresh();
 
+            }
+        }
+
+        private async Task OnDeleteSelectedFiles(object parameter)
+        {
+            if (SelectedFilesCountValue == 0) return;
+
+            var dialog = MessageBox.Show($"Do you want to delete {SelectedFilesCountValue} files selected?", "Caution!!", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+
+            if (dialog == MessageBoxResult.Yes)
+            {
+                var filesToDelete = FilesFound.Where(f => f.IsSelected).ToList();
+                foreach (var file in filesToDelete)
+                {
+                    file.ActionResult = await _fileService.DeleteFile(file);
+                }
+
+                OnPropertyChanged(nameof(FilesFound));
             }
         }
 

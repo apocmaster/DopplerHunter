@@ -67,9 +67,6 @@ namespace DopplerHunter.Models
                 : null;
 
         private bool isSelected;
-
-        
-
         public bool IsSelected 
         { 
             get => isSelected;
@@ -83,6 +80,21 @@ namespace DopplerHunter.Models
                 }
             } 
         }
+
+        private FileActionResult actionResult = new();
+        public FileActionResult ActionResult 
+        { 
+            get => actionResult;
+            set 
+            { 
+                if(actionResult != value)
+                {
+                    actionResult = value;
+                    OnPropertyChanged($"{nameof(ActionResult)}");
+                }
+            } 
+        }
+
 
         #endregion
 

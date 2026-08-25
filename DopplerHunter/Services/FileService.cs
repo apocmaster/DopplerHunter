@@ -1,5 +1,6 @@
 ﻿using DopplerHunter.Events;
 using DopplerHunter.Models;
+using DopplerHunter.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -167,17 +168,32 @@ namespace DopplerHunter.Services
             }
         }
 
-        private Task<string> ComputeHashAsync(FileMetadata file)
+        private async Task<string> ComputeHashAsync(FileMetadata file)
         {
             const long FiftyMB = 50 * 1024 * 1024;
             const long FiveHundredMB = 500 * 1024 * 1024;
 
             return file.FileSize switch
             {
-                < FiftyMB => ComputeMD5(file.FullPath),       // Archivos pequeños
-                < FiveHundredMB => ComputeXXHash(file.FullPath),    // Archivos medianos
-                _ => ComputeSampleHash(file.FullPath, 1024)        // Archivos muy grandes
+                < FiftyMB => await ComputeMD5(file.FullPath),       // Archivos pequeños
+                < FiveHundredMB => await ComputeXXHash(file.FullPath),    // Archivos medianos
+                _ => await ComputeSampleHash(file.FullPath, 1024)        // Archivos muy grandes
             };
+        }
+
+        public async Task<FileActionResult> DeleteFile(FileMetadata file)
+        {
+            if (IsFileNotExists(file.FullPath)) return new FileActionResult().Warning("File does not exists");
+
+            try
+            {
+                await Task.Run(() => File.Delete(file.FullPath));
+                return new FileActionResult().Success("File deleted");
+            }
+            catch(Exception ex) 
+            {
+                return new FileActionResult().Error(ex.Message);           
+            }
         }
     }
 }
