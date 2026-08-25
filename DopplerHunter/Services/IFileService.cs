@@ -1,5 +1,6 @@
 ﻿using DopplerHunter.Events;
 using DopplerHunter.Models;
+using DopplerHunter.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -19,5 +20,6 @@ namespace DopplerHunter.Services
         Task CalculatePossibleDuplicates(ObservableCollection<FileMetadata> files);
         Task MarkFilesDuplicates(ObservableCollection<FileMetadata> files);
         Task GroupFilesDuplicated(ObservableCollection<FileMetadata> files);
+        Task<FileActionResult> DeleteFile(FileMetadata file);
     }
 }

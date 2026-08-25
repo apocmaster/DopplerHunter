@@ -12,6 +12,12 @@
     <SolidColorBrush x:Key="DangerAccent" Color="#DC2626"/>
     <SolidColorBrush x:Key="Bar" Color="#FFB8B8B8"/>
 
+    <!--Brushes Color for ResponseAction -->
+    <SolidColorBrush x:Key="ErrorBrush" Color="Red"/>
+    <SolidColorBrush x:Key="WarningBrush" Color="Goldenrod"/>
+    <SolidColorBrush x:Key="SuccessBrush" Color="Green"/>
+    <SolidColorBrush x:Key="DefaultBrush" Color="Black"/>
+
     <!-- Sombras Suaves (Efecto Elevación) -->
     <DropShadowEffect x:Key="CardShadow" BlurRadius="12" ShadowDepth="2" Direction="270" Color="#000000" Opacity="0.06"/>
 

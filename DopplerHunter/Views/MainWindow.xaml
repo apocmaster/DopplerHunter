@@ -14,6 +14,7 @@
     </Window.DataContext>
     <Window.Resources>
         <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+        <converters:StatusToBrushConverter x:Key="StatusToBrushConverter"/>
     </Window.Resources>
 
     <Grid Margin="16">
@@ -231,42 +232,12 @@
                     <DockPanel>
                         <!-- Filtros y Acción Masiva -->
                         <DockPanel DockPanel.Dock="Top" Margin="0,0,0,12">
-                            <StackPanel Orientation="Horizontal" DockPanel.Dock="Left" >
-                                <ComboBox Width="100" SelectedIndex="0" Margin="0,0,8,0">
-                                    <ComboBoxItem Content="Filter All"/>
-                                </ComboBox>
-                                <TextBlock VerticalAlignment="Center" Margin="0,0,4,0" >Show dups</TextBlock>
-                                <ToggleButton Width="50" Height="25">
-                                    <ToggleButton.Template>
-                                        <ControlTemplate TargetType="ToggleButton">
-                                            <Grid>
-                                                <!-- Fondo cápsula -->
-                                                <Border x:Name="SwitchBackground"
-                                                    CornerRadius="12"
-                                                    Background="LightGray"/>
-                                                <!-- Thumb circular -->
-                                                <Ellipse x:Name="SwitchThumb"
-                                                     Width="20" Height="20"
-                                                     Fill="White"
-                                                     HorizontalAlignment="Left"
-                                                     Margin="2,0,0,0"/> 
-                                            </Grid>
-                                            <ControlTemplate.Triggers>
-                                                <Trigger Property="IsChecked" Value="True">
-                                                    <Setter TargetName="SwitchBackground" Property="Background" Value="DodgerBlue"/>
-                                                    <Setter TargetName="SwitchThumb" Property="HorizontalAlignment" Value="Right"/>
-                                                    <Setter TargetName="SwitchThumb" Property="Margin" Value="0,0,2,0"/>
-                                                </Trigger>
-                                            </ControlTemplate.Triggers>
-                                        </ControlTemplate>
-                                    </ToggleButton.Template>
-                                </ToggleButton>
-                            </StackPanel>
-                            <Button Content="{Binding SelectedFilesCount}"
+                            <Button Content="{Binding SelectedFilesCountText}"
+                                    Command="{Binding DeleteSelectedFilesCommand}"
                                     Style="{StaticResource DangerButtonStyle}"
                                     DockPanel.Dock="Right"
                                     HorizontalAlignment="Right"
-                                    Padding="10,0"/>
+                                    Padding="10,4"/>
                         </DockPanel>
 
                         <!-- Tabla con agrupamiento de duplicados -->
@@ -358,7 +329,8 @@
                                 <DataGridTemplateColumn Header="Actions" Width="80" IsReadOnly="True">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
-                                            <Button Content="DELETE" Foreground="{StaticResource DangerAccent}" Background="Transparent" BorderThickness="0" FontWeight="Bold" Cursor="Hand"/>
+                                            <TextBlock Text="{Binding ActionResult.Message}"
+                                                       Foreground="{Binding ActionResult.Status, Converter={StaticResource StatusToBrushConverter}}"/>
                                         </DataTemplate>
                                     </DataGridTemplateColumn.CellTemplate>
                                 </DataGridTemplateColumn>
