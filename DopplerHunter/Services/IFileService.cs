@@ -1,4 +1,4 @@
-﻿using DopplerHunter.Events;
+using DopplerHunter.Events;
 using DopplerHunter.Models;
 using DopplerHunter.Utilities;
 using System;
