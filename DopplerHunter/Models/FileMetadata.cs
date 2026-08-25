@@ -1,5 +1,6 @@
 using DopplerHunter.Utilities;
 using System;
+using System.ComponentModel;
 using System.IO;
 using System.Windows.Navigation;
 
@@ -8,19 +9,20 @@ namespace DopplerHunter.Models
     /// <summary>
     /// Modelo unificado para almacenar metadatos de archivos y detección de duplicados.
     /// </summary>
-    public class FileMetadata
+    public class FileMetadata: NotificationPropertiesBase
     {
-        private string fileHash;
+        
+        #region Properties
 
         /// <summary>
         /// Ruta completa del archivo.
         /// </summary>
-        public string FullPath { get; set; }
+        public string FullPath { get; set; } = string.Empty;
 
         /// <summary>
         /// Nombre del archivo.
         /// </summary>
-        public string FileName { get; set; }
+        public string FileName { get; set; } = string.Empty;
 
         /// <summary>
         /// Tamaño del archivo en bytes.
@@ -30,6 +32,7 @@ namespace DopplerHunter.Models
         /// <summary>
         /// Hash SHA256 del archivo (calculado después de verificar tamaño).
         /// </summary>
+        private string fileHash = string.Empty;
         public string FileHash { get => fileHash; set => fileHash = value; }
 
         /// <summary>
@@ -61,8 +64,45 @@ namespace DopplerHunter.Models
         public string? ToolTipName =>
             !string.IsNullOrEmpty(FileName) && FileName.Length > 50
                 ? FileName
-                : null; 
+                : null;
 
+        private bool isSelected;
+        public bool IsSelected 
+        { 
+            get => isSelected;
+            set
+            { 
+                if(isSelected != value)
+                {
+                    isSelected = value;
+                    OnPropertyChanged(nameof(IsSelected));
+                    SelectionChanged?.Invoke(this, EventArgs.Empty);
+                }
+            } 
+        }
+
+        private FileActionResult actionResult = new();
+        public FileActionResult ActionResult 
+        { 
+            get => actionResult;
+            set 
+            { 
+                if(actionResult != value)
+                {
+                    actionResult = value;
+                    OnPropertyChanged($"{nameof(ActionResult)}");
+                }
+            } 
+        }
+
+
+        #endregion
+
+        #region Events
+
+        public static event EventHandler? SelectionChanged;
+
+        #endregion
 
         /// <summary>
         /// Obtiene el tamaño formateado en KB/MB/GB.

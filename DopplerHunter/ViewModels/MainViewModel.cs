@@ -1,18 +1,19 @@
-﻿using DopplerHunter.Commands;
+﻿using DopplerHunter.Adapters;
+using DopplerHunter.Commands;
+using DopplerHunter.Events;
+using DopplerHunter.Extensions;
 using DopplerHunter.Models;
 using DopplerHunter.Services;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.IO;
-using System.Reflection.Metadata;
-using System.Security.Cryptography;
+using System.Windows;
 using System.Windows.Data;
 using System.Windows.Input;
 
 namespace DopplerHunter.ViewModels
 {
-    public class MainViewModel: BaseViewModel
+    public class MainViewModel : BaseViewModel
     {
         #region Properties
         public ObservableCollection<FileSystemItemViewModel> Drives { get; } = [];
@@ -40,9 +41,9 @@ namespace DopplerHunter.ViewModels
         public long TotalFoldersFound
         {
             get { return totalFolderFound; }
-            private set { 
-                if(totalFolderFound != value)
-                totalFolderFound = value;
+            private set {
+                if (totalFolderFound != value)
+                    totalFolderFound = value;
                 OnPropertyChanged(nameof(TotalFoldersFound));
             }
         }
@@ -52,9 +53,9 @@ namespace DopplerHunter.ViewModels
         public long TotalDuplicatesFound
         {
             get { return totalDuplicatesFound; }
-            private set { 
-                if(totalDuplicatesFound != value)
-                totalDuplicatesFound = value;
+            private set {
+                if (totalDuplicatesFound != value)
+                    totalDuplicatesFound = value;
                 OnPropertyChanged(nameof(TotalDuplicatesFound));
             }
         }
@@ -63,13 +64,26 @@ namespace DopplerHunter.ViewModels
         public string StatusMessage
         {
             get => _statusMessage;
-            set 
-            { 
+            set
+            {
                 _statusMessage = value;
                 Debug.WriteLine(_statusMessage); // TODO : Remove this line after debugging
-                OnPropertyChanged(); 
+                OnPropertyChanged();
             }
         }
+
+        
+        public int SelectedFilesCountValue
+        {
+            get { return FilesFound.Count(x => x.IsSelected); }
+        }
+
+        public string SelectedFilesCountText
+        {
+            get { return $"DELETE ALL SELECTED DUPLICATES ({SelectedFilesCountValue})"; }
+        }
+
+
 
         #endregion
 
@@ -79,26 +93,34 @@ namespace DopplerHunter.ViewModels
         public ICommand ExcludeFolderFromSearchCommand { get; }
         public ICommand ClearFoldersFromSearchCommand { get; }
         public ICommand ScanForDuplicatesCommand { get; }
-
         public ICommand OpenFileCommand { get; }
+        public ICommand DeleteSelectedFilesCommand { get; }
+
 
         #endregion
 
         #region Services
         private readonly IDriveService _driveService;
         private readonly IFileService _fileService;
+        private readonly IDirectoryService _directoryService;
 
         #endregion
 
         #region Constructor
-        public MainViewModel() : this(new DriveService(), new FileService())
+        public MainViewModel() : this(new DriveService(), new FileService(), new DirectoryService())
         {
         }
 
-        public MainViewModel(IDriveService driveService, IFileService fileService)
+        public MainViewModel(IDriveService driveService, IFileService fileService, IDirectoryService directoryService)
         {
             _driveService = driveService;
             _fileService = fileService;
+            _directoryService = directoryService;
+
+            _fileService.HashesCalculated += OnHashesCalulated;
+
+            _directoryService.DirectoryAnalized += OnDirectoryAnalized;
+            _directoryService.FilesExtractionCompleted += OnFilesExtractionCompleted;
 
             ToggleExpandCommand = new RelayCommand(async (p) => await OnToggleExpandCommand(p));
             SelectFolderForSearchCommand = new RelayCommand(OnSelectFolderForSearchCommand);
@@ -106,10 +128,18 @@ namespace DopplerHunter.ViewModels
             ClearFoldersFromSearchCommand = new RelayCommand(OnClearFoldersFromSearchCommand);
             ScanForDuplicatesCommand = new RelayCommand(async (p) => await OnScanForDuplicatesCommand(p));
             OpenFileCommand = new RelayCommand(async (p) => await OnOpenFileCommand(p.ToString()!));
+            DeleteSelectedFilesCommand = new RelayCommand(async (p) => await OnDeleteSelectedFiles(p));
 
             FilesFoundView = CollectionViewSource.GetDefaultView(FilesFound);
+            
             FilesFoundView.SortDescriptions.Add(new SortDescription(nameof(FileMetadata.FileHash), ListSortDirection.Ascending));
             FilesFoundView.SortDescriptions.Add(new SortDescription(nameof(FileMetadata.FolderPath), ListSortDirection.Ascending));
+
+            FilesFound.CollectionChanged += (s, e) => ApplyGrouping();
+            FileMetadata.SelectionChanged += (_, __) => { OnPropertyChanged(nameof(SelectedFilesCountText)); };  
+            
+
+            ApplyGrouping();
             LoadDrives();
         }
 
@@ -128,6 +158,26 @@ namespace DopplerHunter.ViewModels
 
         #endregion
 
+        #region Events
+
+        private void OnDirectoryAnalized(object? sender, DirectoryAnalizedEventArgs e)
+        {
+            TotalFoldersFound = e.DirectoriesAnalized;
+            OnPropertyChanged(nameof(TotalFoldersFound));
+        }
+
+        private void OnFilesExtractionCompleted(object? sender, FilesExtractionCompletedEventArgs e)
+        {
+            TotalFilesFound += e.FilesExtracted;
+            OnPropertyChanged(nameof(TotalFilesFound));
+        }
+
+        private void OnHashesCalulated(object? sender, HashesCalculatedEventArgs e)
+        {
+            TotalDuplicatesFound = e.HashesCalculated;
+        }
+
+        #endregion
 
         #region Commands and Actions
 
@@ -184,70 +234,46 @@ namespace DopplerHunter.ViewModels
         private async Task OnScanForDuplicatesCommand(object parameter)
         {
             StatusMessage = "Searching files in folders.";
-            if(IsThereAnyFolderSelected())
+            if (IsThereAnyFolderSelected())
             {
                 CleanFilesFoundCollection();
                 ResetCounters();
 
-                // Search for files in each selected folders
-                await ScanSelectedFoldersForFiles();
+                var directories = await _directoryService.ScanDirectoriesAndSubdirectories(
+                    SelectedSearchFolders.ToList());
+
+                var files = await _directoryService.GetFilesInDirectories(directories);
+
+                var filesMetadataList = FileInfoToFileMetadataAdapter.Convert(files);
+                FilesFound.AddRange(filesMetadataList);
+
+
+                await _fileService.CalculatePossibleDuplicates(FilesFound);
+                await _fileService.MarkFilesDuplicates(FilesFound);
+                await _fileService.GroupFilesDuplicated(FilesFound);
                 
-
-                var possibleDuplicates = FilesFound
-                    .GroupBy(f => f.FileSize)
-                    .Where(g => g.Count() > 1)
-                    .SelectMany(g => g);
-
-                int counter = 0;
-                foreach (var file in possibleDuplicates)
-                {
-                    var hash = await _fileService.ComputeXXHash(file.FullPath);
-                    file.FileHash = hash;
-                    file.IsHashCalculated = true;                    
-                    
-                    counter++;
-                    if (counter % 10 == 0)
-                    {
-                        await Task.Yield(); // Yield control to keep UI responsive
-                    }
-                    //StatusMessage = $"Possible duplicate found: {file.FullPath} (Size: {file.FileSize})";
-                }
-
-                var duplicates = FilesFound
-                    .Where(f => f.IsHashCalculated && !string.IsNullOrEmpty(f.FileHash))
-                    .GroupBy(f => f.FileHash)
-                    .Where(g => g.Count() > 1)
-                    .SelectMany(g => g);
-
-                foreach (var file in duplicates)
-                {
-                    file.IsFileDuplicated = true;
-                    StatusMessage = $"Duplicate found: {file.FullPath} (Hash: {file.FileHash})";
-                }
-
-                var grouped = FilesFound
-                .Where(f => f.IsFileDuplicated)
-                .GroupBy(f => f.FileHash)
-                .Select(g => g.OrderBy(f => f.FolderPath))
-                ;
-
-                foreach (var group in grouped)
-                {
-                    int index = 1;
-                    foreach (var file in group)
-                    {
-                        file.DuplicateIndex = index++;
-                    }
-                }
-
-
                 OnPropertyChanged(nameof(FilesFound)); //notificar los cambios
                 FilesFoundView.Filter = f => ((FileMetadata)f).IsFileDuplicated; // Filter to show only duplicates
                 FilesFoundView.Refresh();
 
+            }
+        }
 
-                TotalDuplicatesFound = FilesFound.Count(f => f.IsFileDuplicated == true);
-                OnPropertyChanged(nameof(TotalDuplicatesFound));
+        private async Task OnDeleteSelectedFiles(object parameter)
+        {
+            if (SelectedFilesCountValue == 0) return;
+
+            var dialog = MessageBox.Show($"Do you want to delete {SelectedFilesCountValue} files selected?", "Caution!!", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+
+            if (dialog == MessageBoxResult.Yes)
+            {
+                var filesToDelete = FilesFound.Where(f => f.IsSelected).ToList();
+                foreach (var file in filesToDelete)
+                {
+                    file.ActionResult = await _fileService.DeleteFile(file);
+                }
+
+                OnPropertyChanged(nameof(FilesFound));
             }
         }
 
@@ -274,75 +300,6 @@ namespace DopplerHunter.ViewModels
             }
         }
 
-        private async Task ScanSelectedFoldersForFiles()
-        {
-            foreach (var folder in SelectedSearchFolders)
-            {
-                await SearchFilesInDirectory(folder.FullPath, folder.IncludeSubdirectories);
-                await UpdateTotalFilesFound();
-            }
-        }
-
-
-        /// <summary>
-        /// Searches for files in the specified directory. If includeSubdirectories is true, it recursively searches through all subdirectories. It registers the contents of the directory by adding its files to the FilesFound collection and updating the total counts of files and folders found. 
-        /// </summary>
-        /// <param name="folder"></param>
-        /// <param name="includeSubdirectories"></param>
-        /// <returns></returns>
-        private async Task SearchFilesInDirectory(string folder, bool includeSubdirectories)
-        {
-            if (includeSubdirectories)
-            {
-                await ProcessSubdirectories(folder);
-            }
-
-            await IncreaseTotalFoldersFound();
-            await RegisterDirectoryContents(folder);            
-        }
-
-        /// <summary>
-        /// Processes the subdirectories of the specified folder by recursively searching for files in each subdirectory. It calls the SearchFilesInDirectory method for each subdirectory found.
-        /// </summary>
-        /// <param name="folder"></param>
-        /// <returns></returns>
-        private async Task ProcessSubdirectories(string folder)
-        {
-            foreach (var subDir in Directory.GetDirectories(folder))
-            {
-                await SearchFilesInDirectory(subDir, true);
-            }
-        }
-
-        /// <summary>
-        /// Registers the contents of a directory by adding its files to the FilesFound collection and updating the total counts of files and folders found.
-        /// </summary>
-        /// <param name="folder"></param>
-        /// <returns></returns>
-        private async Task RegisterDirectoryContents(string folder)
-        {
-            var directoryFiles = new DirectoryInfo(folder);
-            await AddFilesToFoundCollection(directoryFiles.GetFiles());            
-        }
-
-        /// <summary>
-        /// Increases the total count of folders found by one.
-        /// </summary>
-        private async Task IncreaseTotalFoldersFound()
-        {
-            TotalFoldersFound++;
-            OnPropertyChanged(nameof(TotalFoldersFound));
-        }
-
-        /// <summary>
-        /// Updates the total count of files found based on the current count of the FilesFound collection.
-        /// </summary>
-        private async Task UpdateTotalFilesFound()
-        {
-            TotalFilesFound = FilesFound.Count;
-            OnPropertyChanged(nameof(TotalFilesFound));
-        }
-
         /// <summary>
         /// Resets the total counts of files and folders found to zero.
         /// </summary>
@@ -352,7 +309,7 @@ namespace DopplerHunter.ViewModels
             TotalFoldersFound = 0;
             TotalDuplicatesFound = 0;
         }
-
+                
         /// <summary>
         /// Clears the FilesFound collection and notifies that the property has changed.
         /// </summary>
@@ -362,31 +319,17 @@ namespace DopplerHunter.ViewModels
             OnPropertyChanged(nameof(FilesFound));
         }
 
-        /// <summary>
-        /// Adds the specified files to the FilesFound collection by creating FileMetadata objects for each file and populating their properties.
-        /// </summary>
-        /// <param name="files"></param>
-        /// <returns></returns>
-        private async Task AddFilesToFoundCollection(FileInfo[] files)
+        private void ApplyGrouping()
         {
-            if(files.Length == 0)
-                return;
+            if (FilesFoundView == null) return;
 
-            foreach (var file in files)
+            FilesFoundView.GroupDescriptions.Clear();
+
+            if (FilesFound.Count > 0)
             {
-                FilesFound.Add(new FileMetadata
-                {
-                    FullPath = file.FullName,
-                    FileName = Path.GetFileNameWithoutExtension(file.Name),                    
-                    FileSize = file.Length,
-                    LastModified = file.LastWriteTime,
-                    IsHashCalculated = false,
-                    FolderPath = Path.GetFileName(file.DirectoryName) ?? string.Empty,
-                    Extension = Path.GetExtension(file.FullName) ?? string.Empty,
-                   
-                });
+                FilesFoundView.GroupDescriptions.Add(
+                    new PropertyGroupDescription(nameof(FileMetadata.FileHash)));
             }
         }
-
     }
 }

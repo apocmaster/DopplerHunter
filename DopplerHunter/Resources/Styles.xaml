@@ -12,6 +12,12 @@
     <SolidColorBrush x:Key="DangerAccent" Color="#DC2626"/>
     <SolidColorBrush x:Key="Bar" Color="#FFB8B8B8"/>
 
+    <!--Brushes Color for ResponseAction -->
+    <SolidColorBrush x:Key="ErrorBrush" Color="Red"/>
+    <SolidColorBrush x:Key="WarningBrush" Color="Goldenrod"/>
+    <SolidColorBrush x:Key="SuccessBrush" Color="Green"/>
+    <SolidColorBrush x:Key="DefaultBrush" Color="Black"/>
+
     <!-- Sombras Suaves (Efecto Elevación) -->
     <DropShadowEffect x:Key="CardShadow" BlurRadius="12" ShadowDepth="2" Direction="270" Color="#000000" Opacity="0.06"/>
 
@@ -314,11 +320,14 @@
     </Style>
 
     <!-- Sección Header Style -->
-    <Style x:Key="SectionHeaderStyle" TargetType="TextBlock">
-        <Setter Property="FontSize" Value="12"/>
-        <Setter Property="FontWeight" Value="Bold"/>
-        <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
-        <Setter Property="Margin" Value="0,0,0,8"/>
+    <Style x:Key="SectionHeaderBaseStyle">
+        <Setter Property="TextElement.FontSize" Value="12"/>
+        <Setter Property="TextElement.FontWeight" Value="Bold"/>
+        <Setter Property="TextElement.Foreground" Value="{StaticResource TextPrimary}"/>
+        <Setter Property="FrameworkElement.Margin" Value="0,0,0,8"/>
     </Style>
+
+    <Style x:Key="SectionHeaderTextBlockStyle" TargetType="TextBlock" BasedOn="{StaticResource SectionHeaderBaseStyle}" />
+    <Style x:Key="SectionHeaderLabelStyle" TargetType="Label" BasedOn="{StaticResource SectionHeaderBaseStyle}" />
 
 </ResourceDictionary>

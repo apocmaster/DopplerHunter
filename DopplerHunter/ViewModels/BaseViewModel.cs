@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
+﻿using DopplerHunter.Models;
 using System.Runtime.CompilerServices;
 
 namespace DopplerHunter.ViewModels
@@ -8,17 +6,17 @@ namespace DopplerHunter.ViewModels
     /// <summary>
     /// Clase base para todos los ViewModels con soporte para INotifyPropertyChanged.
     /// </summary>
-    public abstract class BaseViewModel : INotifyPropertyChanged
+    public abstract class BaseViewModel : NotificationPropertiesBase
     {
-        public event PropertyChangedEventHandler PropertyChanged;
+        //public event PropertyChangedEventHandler PropertyChanged;
 
-        /// <summary>
-        /// Notifica cambios en propiedades.
-        /// </summary>
-        protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
+        ///// <summary>
+        ///// Notifica cambios en propiedades.
+        ///// </summary>
+        //protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        //{
+        //    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        //}
 
         /// <summary>
         /// Establece un valor en una propiedad y notifica si cambió.
