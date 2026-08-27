@@ -19,3 +19,18 @@
     Language: C#
     Framework: .NET / WPF (Windows Presentation Foundation)
     Architecture: MVVM Pattern (Model-View-ViewModel) 
+
+### 🗃️ Installation
+
+ 1. Download the installation package from the [Releases](../../releases) section.
+ 2. Follow the standard installation wizard (Next, Next, Finish).
+
+## 🚀 How to Use
+
+1. **Select Folders:** Navigate the directory tree, highlight a folder, and press **Enter** to add it to the scan list.
+2. **Configure Subdirectories:** Toggle whether to include or exclude subdirectories for each selected folder.
+3. **Start Search:** Click **SearchDuplicates** to initiate the file analysis.
+4. **Select Duplicates:** Review the grouped identical files and check the boxes for the items you wish to remove.
+5. **Execute Deletion:** Click **Delete All Selected Duplicates**. 
+   > **Note:** This action updates the *Action* column status to confirm whether each file was successfully deleted without removing them from the current view.
+6. **Verify Clean-Up:** Click **SearchDuplicates** again to confirm all unwanted duplicate files have been cleared.
