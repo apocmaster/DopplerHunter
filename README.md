@@ -4,7 +4,7 @@
 
 ## Description
 
-**Doopple Hunter** is a fast, lightweight desktop application designed to scan, detect, and manage duplicate files across your system. It helps you reclaim disk space and keep your storage organized by accurately grouping identical files using content-based hash analysis.
+**Dopple Hunter** is a fast, lightweight desktop application designed to scan, detect, and manage duplicate files across your system. It helps you reclaim disk space and keep your storage organized by accurately grouping identical files using content-based hash analysis.
 
 ### 🚀 Key Features
 
