@@ -1,0 +1,20 @@
+# Build outputs
+bin/
+obj/
+
+# IDE and tooling
+.vs/
+.vscode/
+.idea/
+
+# Version control
+.git/
+
+# Logs and databases
+*.log
+*.sqlite
+*.tmp
+
+# Dependencies
+node_modules/
+packages/

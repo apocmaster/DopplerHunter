@@ -1,11 +1,6 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     
-    <!--BRUSHES-->
-    <SolidColorBrush x:Key="ScrollBarThumbBrush" Color="#888888" />
-    <SolidColorBrush x:Key="ScrollBarThumbHoverBrush" Color="#555555" />
-    <SolidColorBrush x:Key="ScrollBarTrackBrush" Color="Transparent" />
-
     <!--STYLES-->
     <Style x:Key="ScrollBarThumbStyle" TargetType="{x:Type Thumb}">
         <Setter Property="OverridesDefaultStyle" Value="true"/>
@@ -71,7 +66,7 @@
         </Style.Triggers>
     </Style>
 
-    <!--ICONS-->
+    <!-- ICONS  -->
     <GeometryGroup x:Key="SunIconGeometry">
         <!-- Círculo central -->
         <EllipseGeometry Center="50,50" RadiusX="25" RadiusY="25" />
