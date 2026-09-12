@@ -1,4 +1,4 @@
-﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <!-- TAILWIND COLORS -->
@@ -354,9 +354,6 @@
     <Color x:Key="Gray3">#FF6B7280</Color>
     <Color x:Key="Gray4">#FF555555</Color>
 
-    <Color x:Key="Blue500">#FF0066CC</Color>
-    <Color x:Key="Blue700">#FF0052A3</Color>
-
     <Color x:Key="Red">#FFDC2626</Color>
     <Color x:Key="Golden">#FFDAA520</Color>
     <Color x:Key="Green">#FF008000</Color>
@@ -372,18 +369,23 @@
     <SolidColorBrush x:Key="Dark" Color="{StaticResource stone-950}" />
     <SolidColorBrush x:Key="Overlay" Color="{StaticResource stone-800}" Opacity="0.8" />
     
-    
-    
 
     <!-- Paleta de Colores - Bootstrap 5 Inspired -->
     <SolidColorBrush x:Key="AppBackground" Color="{StaticResource Smoke}"/>
     <SolidColorBrush x:Key="CardBackground" Color="{StaticResource White}"/>
-    <SolidColorBrush x:Key="PrimaryAccent" Color="{StaticResource Blue500}"/>
-    <SolidColorBrush x:Key="PrimaryAccentHover" Color="{StaticResource Blue700}"/>
+    <SolidColorBrush x:Key="PrimaryAccent" Color="{StaticResource blue-500}"/>
+    <SolidColorBrush x:Key="PrimaryAccentHover" Color="{StaticResource blue-700}"/>
+    <SolidColorBrush x:Key="SecondaryAccent" Color="{StaticResource gray-50}"/>
+    <SolidColorBrush x:Key="SecondaryAccentHover" Color="{StaticResource Snow}"/>
+    <SolidColorBrush x:Key="SecondaryBackground" Color="{StaticResource gray-50}"/>
     <SolidColorBrush x:Key="TextPrimary" Color="{StaticResource Black}"/>
     <SolidColorBrush x:Key="TextSecondary" Color="{StaticResource Gray2}"/>
+    <SolidColorBrush x:Key="TextWhite" Color="{StaticResource White}"/>
     <SolidColorBrush x:Key="BorderBrushLight" Color="{StaticResource Snow}"/>
     <SolidColorBrush x:Key="DangerAccent" Color="{StaticResource Red}"/>
+    <SolidColorBrush x:Key="DangerAccentHover" Color="{StaticResource red-900}"/>
+    <SolidColorBrush x:Key="DangerButtonBackground" Color="{StaticResource red-700}"/>
+    <SolidColorBrush x:Key="DangerButtonBackgroundHover" Color="{StaticResource red-900}"/>
     <SolidColorBrush x:Key="Bar" Color="{StaticResource Gray}"/> 
 
     <!--Brushes Color for ResponseAction -->
