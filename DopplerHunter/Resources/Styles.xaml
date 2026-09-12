@@ -1,6 +1,23 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
+    <!-- Paleta de Colores - Bootstrap 5 Inspired -->
+    <SolidColorBrush x:Key="AppBackground" Color="#F3F4F6"/>
+    <SolidColorBrush x:Key="CardBackground" Color="#FFFFFF"/>
+    <SolidColorBrush x:Key="PrimaryAccent" Color="#0066CC"/>
+    <SolidColorBrush x:Key="PrimaryAccentHover" Color="#0052A3"/>
+    <SolidColorBrush x:Key="TextPrimary" Color="#1F2937"/>
+    <SolidColorBrush x:Key="TextSecondary" Color="#6B7280"/>
+    <SolidColorBrush x:Key="BorderBrushLight" Color="#E5E7EB"/>
+    <SolidColorBrush x:Key="DangerAccent" Color="#DC2626"/>
+    <SolidColorBrush x:Key="Bar" Color="#FFB8B8B8"/>
+
+    <!--Brushes Color for ResponseAction -->
+    <SolidColorBrush x:Key="ErrorBrush" Color="Red"/>
+    <SolidColorBrush x:Key="WarningBrush" Color="Goldenrod"/>
+    <SolidColorBrush x:Key="SuccessBrush" Color="Green"/>
+    <SolidColorBrush x:Key="DefaultBrush" Color="Black"/>
+
     <!-- Sombras Suaves (Efecto Elevación) -->
     <DropShadowEffect x:Key="CardShadow" BlurRadius="12" ShadowDepth="2" Direction="270" Color="{StaticResource Black}" Opacity="0.06"/>
 
