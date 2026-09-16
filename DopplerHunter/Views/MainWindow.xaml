@@ -1,13 +1,14 @@
-﻿<Window x:Class="DopplerHunter.MainWindow"
+<Window x:Class="DopplerHunter.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:DopplerHunter.ViewModels"
         xmlns:converters="clr-namespace:DopplerHunter.Converters"
+        xmlns:controls="clr-namespace:DopplerHunter.Views.Controls"
         mc:Ignorable="d"
         WindowStartupLocation="CenterScreen"
-        Background="{StaticResource Main}"
+        Style="{StaticResource DefaultWindowStyle}"
         Title="Doopple Hunter" Height="620" Width="1140">
     <Window.DataContext>
         <local:MainViewModel/>
@@ -207,24 +208,18 @@
 
                 <!-- Tarjetas de Métricas/Métricas clave (KPIs) -->
                 <UniformGrid Grid.Row="1" Columns="3" Margin="0,0,0,12">
-                    <Border Style="{StaticResource CardPanelStyle}" Margin="0,0,6,0">
-                        <StackPanel>
-                            <TextBlock Text="Directories Scanned" FontSize="11" Foreground="{StaticResource TextSecondary}"/>
-                            <TextBlock Text="{Binding TotalFoldersFound}" FontSize="22" FontWeight="Bold" Foreground="{StaticResource TextPrimary}" Margin="0,4,0,0"/>
-                        </StackPanel>
-                    </Border>
-                    <Border Style="{StaticResource CardPanelStyle}" Margin="3,0,3,0">
-                        <StackPanel>
-                            <TextBlock Text="Total Files" FontSize="11" Foreground="{StaticResource TextSecondary}"/>
-                            <TextBlock Text="{Binding TotalFilesFound}" FontSize="22" FontWeight="Bold" Foreground="{StaticResource TextPrimary}" Margin="0,4,0,0"/>
-                        </StackPanel>
-                    </Border>
-                    <Border Style="{StaticResource CardPanelStyle}" Margin="6,0,0,0">
-                        <StackPanel>
-                            <TextBlock Text="Duplicates Found" FontSize="11" Foreground="{StaticResource TextSecondary}"/>
-                            <TextBlock Text="{Binding TotalDuplicatesFound}" FontSize="22" FontWeight="Bold" Foreground="{StaticResource DangerAccent}" Margin="0,4,0,0"/>
-                        </StackPanel>
-                    </Border>
+                    <controls:StatCard Title="Directories Scanned"
+                                       Value="{Binding TotalFoldersFound}"
+                                       ValueStyle="{StaticResource StatCardValuePrimaryStyle}"
+                                       Margin="0,0,6,0"/>
+                    <controls:StatCard Title="Total Files"
+                                       Value="{Binding TotalFilesFound}"
+                                       ValueStyle="{StaticResource StatCardValuePrimaryStyle}"
+                                       Margin="3,0,3,0"/>
+                    <controls:StatCard Title="Duplicates Found"
+                                       Value="{Binding TotalDuplicatesFound}"
+                                       ValueStyle="{StaticResource StatCardValueDangerStyle}"
+                                       Margin="6,0,0,0"/>
                 </UniformGrid>
 
                 <!-- Tabla de Resultados (DataGrid de Archivos Duplicados) -->
