@@ -1,4 +1,4 @@
-﻿using DopplerHunter.Adapters;
+using DopplerHunter.Adapters;
 using DopplerHunter.Commands;
 using DopplerHunter.Events;
 using DopplerHunter.Extensions;
@@ -72,7 +72,22 @@ namespace DopplerHunter.ViewModels
             }
         }
 
-        
+        private bool _isScanning;
+        public bool IsScanning
+        {
+            get => _isScanning;
+            private set
+            {
+                if (SetProperty(ref _isScanning, value))
+                {
+                    OnPropertyChanged(nameof(SearchButtonText));
+                    CommandManager.InvalidateRequerySuggested();
+                }
+            }
+        }
+
+        public string SearchButtonText => IsScanning ? "Scanning..." : "Search _Duplicates";
+
         public int SelectedFilesCountValue
         {
             get { return FilesFound.Count(x => x.IsSelected); }
@@ -82,8 +97,6 @@ namespace DopplerHunter.ViewModels
         {
             get { return $"DELETE ALL SELECTED DUPLICATES ({SelectedFilesCountValue})"; }
         }
-
-
 
         #endregion
 
@@ -95,7 +108,6 @@ namespace DopplerHunter.ViewModels
         public ICommand ScanForDuplicatesCommand { get; }
         public ICommand OpenFileCommand { get; }
         public ICommand DeleteSelectedFilesCommand { get; }
-
 
         #endregion
 
@@ -126,7 +138,7 @@ namespace DopplerHunter.ViewModels
             SelectFolderForSearchCommand = new RelayCommand(OnSelectFolderForSearchCommand);
             ExcludeFolderFromSearchCommand = new RelayCommand(OnExcludeFolderFromSearchCommand);
             ClearFoldersFromSearchCommand = new RelayCommand(OnClearFoldersFromSearchCommand);
-            ScanForDuplicatesCommand = new RelayCommand(async (p) => await OnScanForDuplicatesCommand(p));
+            ScanForDuplicatesCommand = new RelayCommand(async (p) => await OnScanForDuplicatesCommand(p), (p) => !IsScanning);
             OpenFileCommand = new RelayCommand(async (p) => await OnOpenFileCommand(p.ToString()!));
             DeleteSelectedFilesCommand = new RelayCommand(async (p) => await OnDeleteSelectedFiles(p));
 
@@ -135,9 +147,7 @@ namespace DopplerHunter.ViewModels
             FilesFoundView.SortDescriptions.Add(new SortDescription(nameof(FileMetadata.FileHash), ListSortDirection.Ascending));
             FilesFoundView.SortDescriptions.Add(new SortDescription(nameof(FileMetadata.FolderPath), ListSortDirection.Ascending));
 
-            FilesFound.CollectionChanged += (s, e) => ApplyGrouping();
             FileMetadata.SelectionChanged += (_, __) => { OnPropertyChanged(nameof(SelectedFilesCountText)); };  
-            
 
             ApplyGrouping();
             LoadDrives();
@@ -233,29 +243,54 @@ namespace DopplerHunter.ViewModels
         /// <returns></returns>
         private async Task OnScanForDuplicatesCommand(object parameter)
         {
-            StatusMessage = "Searching files in folders.";
-            if (IsThereAnyFolderSelected())
+            if (IsScanning) return;
+
+            if (!IsThereAnyFolderSelected())
             {
+                StatusMessage = "Please select at least one folder to search.";
+                return;
+            }
+
+            IsScanning = true;
+            try
+            {
+                StatusMessage = "Scanning directories...";
                 CleanFilesFoundCollection();
                 ResetCounters();
 
                 var directories = await _directoryService.ScanDirectoriesAndSubdirectories(
                     SelectedSearchFolders.ToList());
 
+                StatusMessage = $"Extracting files from {directories.Count} directories...";
                 var files = await _directoryService.GetFilesInDirectories(directories);
 
+                StatusMessage = $"Processing {files.Count} files...";
                 var filesMetadataList = FileInfoToFileMetadataAdapter.Convert(files);
                 FilesFound.AddRange(filesMetadataList);
 
-
+                StatusMessage = "Calculating file hashes...";
                 await _fileService.CalculatePossibleDuplicates(FilesFound);
+
+                StatusMessage = "Detecting duplicate files...";
                 await _fileService.MarkFilesDuplicates(FilesFound);
                 await _fileService.GroupFilesDuplicated(FilesFound);
-                
-                OnPropertyChanged(nameof(FilesFound)); //notificar los cambios
-                FilesFoundView.Filter = f => ((FileMetadata)f).IsFileDuplicated; // Filter to show only duplicates
+
+                ApplyGrouping();
+                OnPropertyChanged(nameof(FilesFound));
+                FilesFoundView.Filter = f => ((FileMetadata)f).IsFileDuplicated;
                 FilesFoundView.Refresh();
 
+                StatusMessage = TotalDuplicatesFound > 0
+                    ? $"Scan completed. Found {TotalDuplicatesFound} duplicate files."
+                    : "Scan completed. No duplicate files found.";
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Error during scan: {ex.Message}";
+            }
+            finally
+            {
+                IsScanning = false;
             }
         }
 
@@ -324,12 +359,8 @@ namespace DopplerHunter.ViewModels
             if (FilesFoundView == null) return;
 
             FilesFoundView.GroupDescriptions.Clear();
-
-            if (FilesFound.Count > 0)
-            {
-                FilesFoundView.GroupDescriptions.Add(
-                    new PropertyGroupDescription(nameof(FileMetadata.FileHash)));
-            }
+            FilesFoundView.GroupDescriptions.Add(
+                new PropertyGroupDescription(nameof(FileMetadata.FileHash)));
         }
     }
 }

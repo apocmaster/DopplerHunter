@@ -1,4 +1,4 @@
-﻿using DopplerHunter.Events;
+using DopplerHunter.Events;
 using DopplerHunter.ViewModels;
 using System.IO;
 
@@ -30,26 +30,29 @@ namespace DopplerHunter.Services
 
             ResetProcessedDirectories();
 
-            foreach (var directorySelected in directoriesSelected)
+            await Task.Run(async () =>
             {
-                var directoryInfo = new DirectoryInfo(directorySelected.FullPath);
-                if(directoryInfo.Exists)
+                foreach (var directorySelected in directoriesSelected)
                 {
-                    await ScanSubdirectories(directoryInfo, directorySelected.IncludeSubdirectories, result);
+                    var directoryInfo = new DirectoryInfo(directorySelected.FullPath);
+                    if (directoryInfo.Exists)
+                    {
+                        await ScanSubdirectories(directoryInfo, directorySelected.IncludeSubdirectories, result);
+                    }
                 }
+            });
 
-                OnDirectoryAnalized(result.Count);
-            }
-
+            OnDirectoryAnalized(result.Count);
             return result;
         }
 
         public async Task ScanSubdirectories(DirectoryInfo directory, bool includeSubdirectories, List<DirectoryInfo> result)
         {
-
-            if(CanProcessDirectory(directory.FullName)) return; 
+            if (CanProcessDirectory(directory.FullName)) return; 
             
             result.Add(directory);
+            OnDirectoryAnalized(result.Count);
+
             if (includeSubdirectories)
             {
                 DirectoryInfo[] subdirectories;
@@ -76,20 +79,35 @@ namespace DopplerHunter.Services
 
         public async Task<List<FileInfo>> GetFilesInDirectories(List<DirectoryInfo> directories)
         {
-            List<FileInfo> files = [];
-            foreach (DirectoryInfo directory in directories)
+            return await Task.Run(async () =>
             {
-                files.AddRange(await GetFilesInDirectory(directory));
-            }
+                List<FileInfo> files = [];
+                foreach (DirectoryInfo directory in directories)
+                {
+                    files.AddRange(await GetFilesInDirectory(directory));
+                }
 
-            return files;
+                return files;
+            });
         }
 
         public async Task<List<FileInfo>> GetFilesInDirectory(DirectoryInfo directory)
         {
             List<FileInfo> files = [];
 
-            files = directory.GetFiles().ToList();
+            try
+            {
+                files = directory.GetFiles().ToList();
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return files;
+            }
+            catch (IOException)
+            {
+                return files;
+            }
+
             OnFilesExtractionCompleted(files);
 
             return files;

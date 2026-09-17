@@ -40,7 +40,7 @@
                     Command="{Binding ScanForDuplicatesCommand}">
                 <StackPanel  Orientation="Horizontal">
                     <Path Data="{StaticResource DuplicateGeometry}" Width="20" Height="20" Stretch="Uniform" Margin="0,0,4,0"  Stroke="{StaticResource AppBackground}"/>
-                    <AccessText Text="Search _Duplicates" />
+                    <AccessText Text="{Binding SearchButtonText}" />
                 </StackPanel>
             </Button>            
         </Grid>
@@ -201,13 +201,28 @@
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
-                <TextBlock Grid.Row="0" Text="ANALYSIS &amp; ACTION" Style="{StaticResource SectionHeaderTextBlockStyle}"/>
+                <DockPanel Grid.Row="0" Margin="0,0,0,8">
+                    <TextBlock Text="ANALYSIS &amp; ACTION" Style="{StaticResource SectionHeaderTextBlockStyle}" Margin="0"/>
+                    <TextBlock Text="{Binding StatusMessage}" 
+                               FontSize="11" 
+                               Foreground="{StaticResource PrimaryAccent}"
+                               HorizontalAlignment="Right" 
+                               VerticalAlignment="Center"
+                               TextTrimming="CharacterEllipsis"/>
+                </DockPanel>
+
+                <!-- Barra de Progreso Indeterminada durante Escaneo -->
+                <ProgressBar Grid.Row="1"
+                             IsIndeterminate="{Binding IsScanning}"
+                             Visibility="{Binding IsScanning, Converter={StaticResource BoolToVisibilityConverter}}"
+                             Margin="0,0,0,8"/>
 
                 <!-- Tarjetas de Métricas/Métricas clave (KPIs) -->
-                <UniformGrid Grid.Row="1" Columns="3" Margin="0,0,0,12">
+                <UniformGrid Grid.Row="2" Columns="3" Margin="0,0,0,12">
                     <controls:StatCard Title="Directories Scanned"
                                        Value="{Binding TotalFoldersFound}"
                                        ValueStyle="{StaticResource StatCardValuePrimaryStyle}"
@@ -223,7 +238,7 @@
                 </UniformGrid>
 
                 <!-- Tabla de Resultados (DataGrid de Archivos Duplicados) -->
-                <Border Grid.Row="2" Style="{StaticResource CardPanelStyle}" Padding="12">
+                <Border Grid.Row="3" Style="{StaticResource CardPanelStyle}" Padding="12">
                     <DockPanel>
                         <!-- Filtros y Acción Masiva -->
                         <DockPanel DockPanel.Dock="Top" Margin="0,0,0,12">

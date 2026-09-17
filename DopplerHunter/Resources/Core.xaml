@@ -16,9 +16,10 @@
     <SolidColorBrush x:Key="Overlay" Color="{StaticResource stone-800}" Opacity="0.8" />
     
     <!-- BOOTSTRAP PALETTE DEFINITIONS -->
-    <SolidColorBrush x:Key="AppBackground" Color="{StaticResource gray-100}"/>
+    <SolidColorBrush x:Key="AppBackground" Color="{StaticResource gray-200}"/>
     <SolidColorBrush x:Key="CardBackground" Color="{StaticResource white}"/>
     <SolidColorBrush x:Key="PrimaryAccent" Color="{StaticResource blue-500}"/>
+    <SolidColorBrush x:Key="PrimaryAccentBackground" Color="{StaticResource blue-200}"/>
     <SolidColorBrush x:Key="PrimaryAccentHover" Color="{StaticResource blue-700}"/>
     <SolidColorBrush x:Key="SecondaryAccent" Color="{StaticResource gray-50}"/>
     <SolidColorBrush x:Key="SecondaryAccentHover" Color="{StaticResource gray-200}"/>
@@ -40,8 +41,8 @@
     <SolidColorBrush x:Key="DefaultBrush" Color="{StaticResource black}"/>
     
     <!--SCROLL BAR BRUSHES-->
-    <SolidColorBrush x:Key="ScrollBarThumbBrush" Color="{StaticResource gray-200}" />
-    <SolidColorBrush x:Key="ScrollBarThumbHoverBrush" Color="{StaticResource gray-400}" />
+    <SolidColorBrush x:Key="ScrollBarThumbBrush" Color="{StaticResource gray-400}" />
+    <SolidColorBrush x:Key="ScrollBarThumbHoverBrush" Color="{StaticResource gray-500}" />
     <SolidColorBrush x:Key="ScrollBarTrackBrush" Color="{StaticResource transparent}" />
 
     <!--FONT FAMILIES-->

@@ -372,6 +372,15 @@
         </Style.Triggers>
     </Style>
 
+    <!-- PROGRESS BAR -->
+    <Style x:Key="FlatProgressBarStyle" TargetType="ProgressBar">
+        <Setter Property="Height" Value="4"/>
+        <Setter Property="Background" Value="{StaticResource PrimaryAccentBackground}"/>
+        <Setter Property="Foreground" Value="{StaticResource PrimaryAccent}"/>
+        <Setter Property="BorderThickness" Value="0"/>
+    </Style>
+    <Style TargetType="ProgressBar" BasedOn="{StaticResource FlatProgressBarStyle}"/>
+
     <!-- STAT CARD STYLES -->
     <Style x:Key="StatCardTitleStyle" TargetType="TextBlock">
         <Setter Property="FontSize" Value="11"/>
