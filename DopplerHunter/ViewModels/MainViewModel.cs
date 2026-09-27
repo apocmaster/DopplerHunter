@@ -4,6 +4,7 @@ using DopplerHunter.Events;
 using DopplerHunter.Extensions;
 using DopplerHunter.Models;
 using DopplerHunter.Services;
+using DopplerHunter.Utilities;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -23,7 +24,6 @@ namespace DopplerHunter.ViewModels
         public ICollectionView FilesFoundView { get; }
 
         private long totalFilesFound;
-
         public long TotalFilesFound
         {
             get { return totalFilesFound; }
@@ -37,7 +37,6 @@ namespace DopplerHunter.ViewModels
         }
 
         private long totalFolderFound;
-
         public long TotalFoldersFound
         {
             get { return totalFolderFound; }
@@ -49,7 +48,6 @@ namespace DopplerHunter.ViewModels
         }
 
         private long totalDuplicatesFound;
-
         public long TotalDuplicatesFound
         {
             get { return totalDuplicatesFound; }
@@ -66,8 +64,7 @@ namespace DopplerHunter.ViewModels
             get => _statusMessage;
             set
             {
-                _statusMessage = value;
-                Debug.WriteLine(_statusMessage); // TODO : Remove this line after debugging
+                _statusMessage = value;               
                 OnPropertyChanged();
             }
         }
@@ -87,10 +84,9 @@ namespace DopplerHunter.ViewModels
         }
 
         public string SearchButtonText => IsScanning ? "Scanning..." : "Search _Duplicates";
-
         public int SelectedFilesCountValue
         {
-            get { return FilesFound.Count(x => x.IsSelected); }
+            get { return FilesFound.Count(x => x.IsSelected && x.ActionResult.Status == ResponseAction.None); }
         }
 
         public string SelectedFilesCountText
@@ -134,6 +130,8 @@ namespace DopplerHunter.ViewModels
             _directoryService.DirectoryAnalized += OnDirectoryAnalized;
             _directoryService.FilesExtractionCompleted += OnFilesExtractionCompleted;
 
+            FileMetadata.SelectionChanged += OnSelectionFileChanged;
+            
             ToggleExpandCommand = new RelayCommand(async (p) => await OnToggleExpandCommand(p));
             SelectFolderForSearchCommand = new RelayCommand(OnSelectFolderForSearchCommand);
             ExcludeFolderFromSearchCommand = new RelayCommand(OnExcludeFolderFromSearchCommand);
@@ -142,18 +140,16 @@ namespace DopplerHunter.ViewModels
             OpenFileCommand = new RelayCommand(async (p) => await OnOpenFileCommand(p.ToString()!));
             DeleteSelectedFilesCommand = new RelayCommand(async (p) => await OnDeleteSelectedFiles(p));
 
+
             FilesFoundView = CollectionViewSource.GetDefaultView(FilesFound);
-            
-            FilesFoundView.SortDescriptions.Add(new SortDescription(nameof(FileMetadata.FileHash), ListSortDirection.Ascending));
-            FilesFoundView.SortDescriptions.Add(new SortDescription(nameof(FileMetadata.FolderPath), ListSortDirection.Ascending));
+            CollectionViewConfiguring();
+            CollectionViewApplySorting();
+            CollectionViewApplyGrouping();
 
-            FileMetadata.SelectionChanged += (_, __) => { OnPropertyChanged(nameof(SelectedFilesCountText)); };  
-
-            ApplyGrouping();
             LoadDrives();
         }
 
-        #endregion 
+        #endregion
 
         #region Controls
 
@@ -163,6 +159,7 @@ namespace DopplerHunter.ViewModels
             {
                 StatusMessage = $"Processing directory: {item.FullPath}";
                 // Implement your processing logic here
+                // TODO: Check if this will be needed 
             }
         }
 
@@ -275,7 +272,7 @@ namespace DopplerHunter.ViewModels
                 await _fileService.MarkFilesDuplicates(FilesFound);
                 await _fileService.GroupFilesDuplicated(FilesFound);
 
-                ApplyGrouping();
+                CollectionViewApplyGrouping();
                 OnPropertyChanged(nameof(FilesFound));
                 FilesFoundView.Filter = f => ((FileMetadata)f).IsFileDuplicated;
                 FilesFoundView.Refresh();
@@ -310,6 +307,11 @@ namespace DopplerHunter.ViewModels
 
                 OnPropertyChanged(nameof(FilesFound));
             }
+        }
+
+        private void OnSelectionFileChanged(object? sender, EventArgs e)
+        {
+            OnPropertyChanged(nameof(SelectedFilesCountText));
         }
 
         #endregion
@@ -354,7 +356,28 @@ namespace DopplerHunter.ViewModels
             OnPropertyChanged(nameof(FilesFound));
         }
 
-        private void ApplyGrouping()
+        private void CollectionViewConfiguring()
+        {
+            if (FilesFoundView is ListCollectionView liveView)
+            {
+                liveView.IsLiveSorting = true;
+                liveView.LiveSortingProperties.Add(nameof(FileMetadata.IsSelected));
+            }
+        }
+
+        private void CollectionViewApplySorting()
+        {
+            if (FilesFoundView == null) return;
+            FilesFoundView.SortDescriptions.Clear();
+            FilesFoundView.SortDescriptions.Add(
+                new SortDescription(nameof(FileMetadata.FileHash), ListSortDirection.Ascending));
+            FilesFoundView.SortDescriptions.Add(
+                new SortDescription(nameof(FileMetadata.DuplicateIndex), ListSortDirection.Ascending));
+            FilesFoundView.SortDescriptions.Add(
+                new SortDescription(nameof(FileMetadata.FolderPath), ListSortDirection.Ascending));
+        }
+
+        private void CollectionViewApplyGrouping()
         {
             if (FilesFoundView == null) return;
 

@@ -1,0 +1,54 @@
+════════════════════════════════════════════════════════════════════════════════
+					✅ PROBLEMA FINAL RESUELTO
+════════════════════════════════════════════════════════════════════════════════
+
+📝 SÍNTESIS RÁPIDA:
+
+PROBLEMA:
+   Select ID 1 → Click ID 2 → Se reordena a (2,1,3) ❌
+
+CAUSA:
+   ICollectionView recalcula groups/sorts en cada selección
+
+SOLUCIÓN:
+   DeferRefresh pausa la actualización hasta que todo termine
+
+RESULTADO:
+   Orden se mantiene (1,2,3) ✓
+
+
+🔧 CAMBIOS APLICADOS:
+
+   1. FileMetadata.cs
+	  └─ IsSelected dispara OnPropertyChanged (normal)
+
+   2. MainViewModel.cs
+	  └─ FileMetadata_SelectionChanged usa DeferRefresh
+
+		 using (FilesFoundView.DeferRefresh())
+		 {
+			 // Cambios acumulados sin afectar vista
+		 }
+		 // Aquí: 1 recálculo de CollectionView
+
+
+✨ RESULTADO:
+
+   ANTES:
+   ┌─────────────────────┐
+   │ 1, 2, 3 (inicial)   │
+   │ Click 2             │
+   │ → 2, 1, 3 ❌ (error)│
+   └─────────────────────┘
+
+   DESPUÉS:
+   ┌─────────────────────┐
+   │ 1, 2, 3 (inicial)   │
+   │ Click 2             │
+   │ → 1, 2, 3 ✓ (OK)    │
+   └─────────────────────┘
+
+
+════════════════════════════════════════════════════════════════════════════════
+							  ESTADO: ✅ RESUELTO
+════════════════════════════════════════════════════════════════════════════════

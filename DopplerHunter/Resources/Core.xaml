@@ -32,7 +32,12 @@
     <SolidColorBrush x:Key="DangerAccentHover" Color="{StaticResource red-900}"/>
     <SolidColorBrush x:Key="DangerButtonBackground" Color="{StaticResource red-700}"/>
     <SolidColorBrush x:Key="DangerButtonBackgroundHover" Color="{StaticResource red-900}"/>
-    <SolidColorBrush x:Key="Bar" Color="{StaticResource gray-300}"/> 
+    <SolidColorBrush x:Key="Bar" Color="{StaticResource gray-300}"/>   
+
+
+    <!-- BRUSHES FOR COLUMNHEADER -->
+    <SolidColorBrush x:Key="ColumnHeader" Color="{StaticResource stone-200}" />
+    <SolidColorBrush x:Key="ColumnHeaderBorder" Color="{StaticResource gray-400}"/>
 
     <!--BRUSHES FOR RESPONSEACTION -->
     <SolidColorBrush x:Key="ErrorBrush" Color="{StaticResource red-700}"/>
@@ -49,7 +54,7 @@
     <FontFamily x:Key="DefaultFont">{StaticResource TailwindFont}</FontFamily>
 
     <!-- SHADOWS -->
-    <DropShadowEffect x:Key="CardShadow" BlurRadius="12" ShadowDepth="2" Direction="270" Color="{StaticResource black}" Opacity="0.06"/>
+    <DropShadowEffect x:Key="CardShadow" BlurRadius="12" ShadowDepth="2" Direction="270" Color="{StaticResource black}" Opacity="0.15"/>
 
 
 </ResourceDictionary>
