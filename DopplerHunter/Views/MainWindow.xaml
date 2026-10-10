@@ -32,10 +32,7 @@
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
-            <StackPanel Orientation="Horizontal" Grid.Column="0">
-                <TextBlock Text="🔍" FontSize="16" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                <TextBlock Text="QUICK DUPLICATE FINDER" FontWeight="Bold" FontSize="14" Foreground="{StaticResource TextPrimary}" VerticalAlignment="Center"/>
-            </StackPanel>
+            <controls:PageHeader Grid.Column="0" IconString="🔍" Title="QUICK DUPLICATE FINDER"/>
             <Button Grid.Column="1" Style="{StaticResource PrimaryButtonStyle}" Margin="0,0,0,4"
                     Command="{Binding ScanForDuplicatesCommand}">
                 <StackPanel  Orientation="Horizontal">
