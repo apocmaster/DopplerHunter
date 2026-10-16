@@ -20,32 +20,29 @@
 
     <Grid Margin="16">
         <Grid.RowDefinitions>
-            <!-- Header Top Bar -->
+            <!-- HEADER TOP BAR -->
             <RowDefinition Height="Auto"/>
-            <!-- Main Content Grid -->
+            <!-- MAIN CONTENT GRID -->
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <!-- BARRA SUPERIOR / TITULO -->
+        <!-- UPPER BAR & TITLE -->
         <Grid Grid.Row="0" Margin="0,0,0,16">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
-            <StackPanel Orientation="Horizontal" Grid.Column="0">
-                <TextBlock Text="🔍" FontSize="16" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                <TextBlock Text="QUICK DUPLICATE FINDER" FontWeight="Bold" FontSize="14" Foreground="{StaticResource TextPrimary}" VerticalAlignment="Center"/>
-            </StackPanel>
+            <controls:PageHeader Grid.Column="0" IconString="🔍" Title="QUICK DUPLICATE FINDER"/>
             <Button Grid.Column="1" Style="{StaticResource PrimaryButtonStyle}" Margin="0,0,0,4"
                     Command="{Binding ScanForDuplicatesCommand}">
                 <StackPanel  Orientation="Horizontal">
                     <Path Data="{StaticResource DuplicateGeometry}" Width="20" Height="20" Stretch="Uniform" Margin="0,0,4,0"  Stroke="{StaticResource AppBackground}"/>
-                    <AccessText Text="Search _Duplicates" />
+                    <AccessText Text="{Binding SearchButtonText}" VerticalAlignment="Center" />
                 </StackPanel>
             </Button>            
         </Grid>
 
-        <!-- CONTENIDO PRINCIPAL EN 3 COLUMNAS -->
+        <!-- MAIN 3 COLUMNAS -->
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
@@ -79,15 +76,14 @@
                                 <TreeView.ItemTemplate>
                                     <HierarchicalDataTemplate ItemsSource="{Binding Children}">
                                         <StackPanel Orientation="Horizontal">
-                                            <!-- Imagen o icono puede ir aquí [14] -->
                                             <Path x:Name="DiskOrFolderIcon" Data="{StaticResource FolderGeometry }" StrokeThickness="1" Width="20" Height="20" Stretch="Uniform"/>
-                                            <TextBlock Text="{Binding Name}" Margin="5,0"/>
+                                            <TextBlock Text="{Binding Name}" VerticalAlignment="Center" Margin="4,0,0,0"/>
                                         </StackPanel>
                                         <HierarchicalDataTemplate.Triggers>
                                             <DataTrigger Binding="{Binding IsDrive}" Value="True">
                                                 <Setter TargetName="DiskOrFolderIcon" Property="Data" Value="{StaticResource HardDiskGeometry}"/>
-                                                <Setter TargetName="DiskOrFolderIcon" Property="Stroke" Value="#FF232321"/>
-                                                <Setter TargetName="DiskOrFolderIcon" Property="Fill" Value="#FFE7E6E6"/>
+                                                <Setter TargetName="DiskOrFolderIcon" Property="Stroke" Value="#00000000"/>
+                                                <Setter TargetName="DiskOrFolderIcon" Property="Fill" Value="#FF232321"/>
                                             </DataTrigger>
                                             <DataTrigger Binding="{Binding IsDrive}" Value="False">
                                                 <Setter TargetName="DiskOrFolderIcon" Property="Data" Value="{StaticResource FolderGeometry}"/>
@@ -119,14 +115,15 @@
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
 
-                    <StackPanel Grid.Row="0">
-                        <Grid >
+                    <StackPanel Grid.Row="0" Margin="0,4,0,4">
+                        <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
 
-                            <TextBlock Grid.Column="0" Text="{Binding SelectedSearchFolders.Count, StringFormat='SELECTED PATHS: ({0})'}" Style="{StaticResource SectionHeaderTextBlockStyle}"/>
+                            <TextBlock Grid.Column="0" Text="{Binding SelectedSearchFolders.Count, StringFormat='SELECTED PATHS: ({0})'}" 
+                                       Style="{StaticResource SectionHeaderTextBlockStyle}"/>
                             <TextBlock Grid.Column="1" TextAlignment="Right">
                                 <Hyperlink Command="{Binding ClearFoldersFromSearchCommand}" Cursor="Hand">
                                     <StackPanel Orientation="Horizontal">
@@ -143,11 +140,12 @@
                         </Grid>                        
                     </StackPanel>
 
-                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto"
+                                  Margin="0,4,0,0">
                         <ItemsControl ItemsSource="{Binding SelectedSearchFolders}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <Border Style="{StaticResource CardPanelStyle}" Margin="0,0,0,10">
+                                    <Border Style="{StaticResource CardPanelStyle}" Margin="0,6,4,0">
                                         <Grid>
                                             <Grid.RowDefinitions>
                                                 <RowDefinition Height="Auto"/>
@@ -163,11 +161,11 @@
                                             <DockPanel Grid.Row="2">
                                                 <CheckBox Content="Scan Subdirectories" IsChecked="{Binding IncludeSubdirectories, Mode=TwoWay}" VerticalAlignment="Center"/>
                                                 <Button  
-                                    Command="{Binding DataContext.ExcludeFolderFromSearchCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
-                                    CommandParameter="{Binding}"
-                                    Foreground="{StaticResource DangerAccent}" 
-                                    HorizontalAlignment="Right" Background="Transparent" 
-                                    BorderThickness="0" Cursor="Hand">
+                                                    Command="{Binding DataContext.ExcludeFolderFromSearchCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                    CommandParameter="{Binding}"
+                                                    Foreground="{StaticResource DangerAccent}" 
+                                                    HorizontalAlignment="Right" Background="Transparent" 
+                                                    BorderThickness="0" Cursor="Hand">
                                                     <StackPanel Orientation="Horizontal">
                                                         <Path Data="{StaticResource TrashGeometry}" Width="16" Height="16" Stretch="Uniform" Margin="0,0,4,0"  Stroke="{StaticResource DangerAccent}"/>
                                                         <TextBlock Text="Remove"/>
@@ -201,13 +199,28 @@
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
-                <TextBlock Grid.Row="0" Text="ANALYSIS &amp; ACTION" Style="{StaticResource SectionHeaderTextBlockStyle}"/>
+                <DockPanel Grid.Row="0" Margin="0,4,0,8">
+                    <TextBlock Text="ANALYSIS &amp; ACTION" Style="{StaticResource SectionHeaderTextBlockStyle}" Margin="0"/>
+                    <TextBlock Text="{Binding StatusMessage}" 
+                               FontSize="11" 
+                               Foreground="{StaticResource PrimaryAccent}"
+                               HorizontalAlignment="Right" 
+                               VerticalAlignment="Center"
+                               TextTrimming="CharacterEllipsis"/>
+                </DockPanel>
 
-                <!-- Tarjetas de Métricas/Métricas clave (KPIs) -->
-                <UniformGrid Grid.Row="1" Columns="3" Margin="0,0,0,12">
+                <!-- SCANN PROGRESS BAR -->
+                <ProgressBar Grid.Row="1"
+                             IsIndeterminate="{Binding IsScanning}"
+                             Visibility="{Binding IsScanning, Converter={StaticResource BoolToVisibilityConverter}}"
+                             Margin="0,0,0,8"/>
+
+                <!-- METRIC CARDS (KPIs) -->
+                <UniformGrid Grid.Row="2" Columns="3" Margin="0,0,0,12">
                     <controls:StatCard Title="Directories Scanned"
                                        Value="{Binding TotalFoldersFound}"
                                        ValueStyle="{StaticResource StatCardValuePrimaryStyle}"
@@ -222,20 +235,28 @@
                                        Margin="6,0,0,0"/>
                 </UniformGrid>
 
-                <!-- Tabla de Resultados (DataGrid de Archivos Duplicados) -->
-                <Border Grid.Row="2" Style="{StaticResource CardPanelStyle}" Padding="12">
+                <!-- DUPLICATED GRID -->
+                <Border Grid.Row="3" Style="{StaticResource CardPanelStyle}" Padding="12">
                     <DockPanel>
-                        <!-- Filtros y Acción Masiva -->
+                        <!-- FILTERS -->
                         <DockPanel DockPanel.Dock="Top" Margin="0,0,0,12">
-                            <Button Content="{Binding SelectedFilesCountText}"
+                            <Button 
                                     Command="{Binding DeleteSelectedFilesCommand}"
                                     Style="{StaticResource DangerButtonStyle}"
                                     DockPanel.Dock="Right"
                                     HorizontalAlignment="Right"
-                                    Padding="10,4"/>
+                                    >
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <Path Data="{StaticResource TrashGeometry}" Width="16" Height="16" 
+                                          Stretch="Uniform" Margin="0,0,4,0"
+                                          Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+                                    <TextBlock Text="{Binding SelectedFilesCountText}" 
+                                          VerticalAlignment="Center" />
+                                </StackPanel>
+                            </Button>
                         </DockPanel>
 
-                        <!-- Tabla con agrupamiento de duplicados -->
+                        <!-- DUPLICATE GROUPING GRID -->
                         <DataGrid AutoGenerateColumns="False" 
                                   HeadersVisibility="Column" 
                                   GridLinesVisibility="Horizontal" 
@@ -248,7 +269,7 @@
                                   EnableRowVirtualization="True"
                                   EnableColumnVirtualization="True"
                                   VirtualizingPanel.IsVirtualizing="True"
-                                  VirtualizingPanel.VirtualizationMode="Recycling"
+                                  VirtualizingPanel.VirtualizationMode="Standard"
                                   VirtualizingPanel.IsVirtualizingWhenGrouping="True"                                  
                                   ColumnHeaderHeight="32"                                   
                                   >
@@ -330,6 +351,17 @@
                                     </DataGridTemplateColumn.CellTemplate>
                                 </DataGridTemplateColumn>
                             </DataGrid.Columns>
+                            <DataGrid.RowStyle>
+                                <Style TargetType="DataGridRow">
+                                   <Style.Triggers>
+                                        <DataTrigger Binding="{Binding ActionResult.Status}" Value="Succeeded">
+                                            <Setter Property="Background" Value="LightGray"/>
+                                            <Setter Property="Foreground" Value="DarkGray"/>
+                                            <Setter Property="IsEnabled" Value="False"/>
+                                        </DataTrigger>                                        
+                                    </Style.Triggers>
+                                </Style>
+                            </DataGrid.RowStyle>
                         </DataGrid>
                     </DockPanel>
                 </Border>

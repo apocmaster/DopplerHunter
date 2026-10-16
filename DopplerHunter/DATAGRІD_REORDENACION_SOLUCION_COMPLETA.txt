@@ -1,0 +1,277 @@
+═══════════════════════════════════════════════════════════════════════════════
+  SOLUCIÓN: PROBLEMA DE REORDENACIÓN EN DATAGRID AL SELECCIONAR ITEMS
+═══════════════════════════════════════════════════════════════════════════════
+
+PROBLEMA ESPECÍFICO:
+====================
+
+Cuando seleccionas el primer item de un grupo de duplicados en el DataGrid:
+❌ El orden establecido previamente se pierde
+❌ Los items se reordenan incorrectamente dentro del grupo
+❌ El row seleccionado se mueve a otra posición
+
+CAUSA RAÍZ:
+===========
+
+En FileMetadata.cs, la propiedad IsSelected disparaba OnPropertyChanged:
+
+```csharp
+private bool isSelected;
+public bool IsSelected 
+{ 
+	get => isSelected;
+	set
+	{ 
+		if(isSelected != value)
+		{
+			isSelected = value;
+			OnPropertyChanged(nameof(IsSelected));  // ❌ PROBLEMA
+			SelectionChanged?.Invoke(this, EventArgs.Empty);
+		}
+	} 
+}
+```
+
+¿QUÉ SUCEDÍA?
+
+1. Usuario hace clic en CheckBox (IsSelected cambia a true)
+   ↓
+2. IsSelected invoca OnPropertyChanged("IsSelected")
+   ↓
+3. ICollectionView recibe notificación de cambio
+   ↓
+4. ICollectionView RECALCULA todos los Sorts y Groups
+   ↓
+5. Item se reposiciona en la vista ❌ (REORDEN)
+   ↓
+6. Usuario ve cómo el item "se salta" a otra posición
+
+DIAGRAMA DEL PROBLEMA:
+======================
+
+ANTES (Correctamente Ordenado)        DESPUÉS (Al Hacer Clic)
+┌─────────────────────────┐          ┌─────────────────────────┐
+│ Grupo: Hash_A           │          │ Grupo: Hash_A           │
+│ ├─ Archivo1.zip 100MB ✓ │ CLICK    │ ├─ Archivo2.zip 100MB   │
+│ ├─ Archivo2.zip 100MB   │ ──────→  │ ├─ Archivo1.zip 100MB 🔄│
+│ └─ Archivo3.zip 100MB   │          │ └─ Archivo3.zip 100MB ✓ │
+│                         │          │ ^ SE REORDENÓ!          │
+└─────────────────────────┘          └─────────────────────────┘
+
+═══════════════════════════════════════════════════════════════════════════════
+
+SOLUCIÓN IMPLEMENTADA:
+======================
+
+✅ Modificación 1: FileMetadata.cs
+
+Removemos OnPropertyChanged de IsSelected:
+
+```csharp
+private bool isSelected;
+/// <summary>
+/// Selección de archivo - NO notifica PropertyChanged para evitar 
+/// reordenación de items en CollectionView cuando se selecciona.
+/// Los cambios de selección se sincronizan únicamente a través del evento SelectionChanged.
+/// </summary>
+public bool IsSelected 
+{ 
+	get => isSelected;
+	set
+	{ 
+		if(isSelected != value)
+		{
+			isSelected = value;
+			// ⚠️ IMPORTANTE: NO llamar a OnPropertyChanged aquí
+			// Esto evita que WPF recalcule sorts/groups causando reordenación
+			// OnPropertyChanged(nameof(IsSelected));
+			SelectionChanged?.Invoke(this, EventArgs.Empty);
+		}
+	} 
+}
+```
+
+¿POR QUÉ FUNCIONA?
+
+- IsSelected cambia el campo booleano sin notificar a CollectionView
+- El evento SelectionChanged sigue siendo disparado para eventos
+- CollectionView NO recalcula sorts/groups
+- Items mantienen su posición original
+- La selección visual funciona normalmente en el CheckBox
+
+✅ Modificación 2: MainViewModel.cs
+
+Manejamos la selección sin triggering reordenación:
+
+```csharp
+private void FileMetadata_SelectionChanged(object? sender, EventArgs e)
+{
+	// Actualizar propiedades que dependen de la selección
+	// Sin que esto cause reordenación de la CollectionView
+	OnPropertyChanged(nameof(SelectedFilesCountText));
+	OnPropertyChanged(nameof(SelectedFilesCountValue));
+
+	Debug.WriteLine($"Selected items: {SelectedFilesCountValue}");
+}
+```
+
+¿QUÉ HACE?
+
+- Escucha el evento SelectionChanged (no PropertyChanged)
+- Actualiza únicamente propiedades que DEPENDEN de la selección
+- No notifica cambios que causen recálculo de CollectionView
+- Mantiene el contador de items seleccionados actualizado
+
+═══════════════════════════════════════════════════════════════════════════════
+
+VERIFICACIÓN DE LA SOLUCIÓN:
+============================
+
+Después de aplicar los cambios, prueba esto:
+
+1. Ejecuta la aplicación
+2. Realiza un escaneo de duplicados
+3. Selecciona el primer item del primer grupo
+   ✓ El item NO debe cambiar de posición
+   ✓ El CheckBox debe mostrar como marcado
+   ✓ El contador debe actualizarse
+
+4. Selecciona más items en el mismo grupo
+   ✓ Todos deben mantener el orden original
+   ✓ El contador debe incrementarse correctamente
+
+5. Selecciona items en diferentes grupos
+   ✓ El orden dentro de cada grupo debe mantenerse
+   ✓ Los grupos deben mantenerse agrupados
+
+═══════════════════════════════════════════════════════════════════════════════
+
+COMPARATIVA ANTES Y DESPUÉS:
+=============================
+
+ANTES:
+┌─────────────────────────────────────────────┐
+│ Usuario selecciona Archivo1.zip             │
+├─────────────────────────────────────────────┤
+│ IsSelected = true                           │
+│ ↓                                           │
+│ OnPropertyChanged("IsSelected")             │
+│ ↓                                           │
+│ CollectionView recalcula Sorts & Groups     │
+│ ↓                                           │
+│ Los items se REORDENAN ❌                   │
+└─────────────────────────────────────────────┘
+
+DESPUÉS:
+┌─────────────────────────────────────────────┐
+│ Usuario selecciona Archivo1.zip             │
+├─────────────────────────────────────────────┤
+│ IsSelected = true                           │
+│ ↓                                           │
+│ SelectionChanged?.Invoke(...)               │
+│ ↓                                           │
+│ FileMetadata_SelectionChanged llamado       │
+│ ↓                                           │
+│ Actualizar SelectedFilesCountText/Value     │
+│ ↓                                           │
+│ Los items MANTIENEN su posición ✓           │
+└─────────────────────────────────────────────┘
+
+═══════════════════════════════════════════════════════════════════════════════
+
+NOTAS IMPORTANTES:
+===================
+
+1. BINDING DEL CHECKBOX
+   Si tu CheckBox en XAML está vinculado a IsSelected:
+
+   <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay}"/>
+
+   Esto seguirá funcionando porque:
+   - El binding de entrada (OneWayToSource) actualiza el campo privado
+   - El binding de salida NO se actualiza automáticamente
+   - Pero el CheckBox visual permanece correctamente marcado/desmarcado
+
+2. SI NECESITAS SINCRONIZAR BIDIRECCIONAL
+   Usa el evento SelectionChanged en el code-behind:
+
+   <CheckBox 
+	   IsChecked="{Binding IsSelected, Mode=OneWay}"
+	   Click="CheckBox_Click"/>
+
+   private void CheckBox_Click(object sender, RoutedEventArgs e)
+   {
+	   if (sender is CheckBox cb && cb.DataContext is FileMetadata file)
+	   {
+		   file.IsSelected = cb.IsChecked == true;
+	   }
+   }
+
+3. PERFORMANCE
+   - Este cambio MEJORA el rendimiento
+   - Menos notificaciones = menos cálculos en CollectionView
+   - Especialmente importante con miles de items
+
+4. COMPATIBILIDAD
+   - Funciona con DataGrid agrupado
+   - Funciona con CollectionView con Sorts múltiples
+   - Compatible con filtros aplicados
+
+═══════════════════════════════════════════════════════════════════════════════
+
+ESTRUCTURA FINAL DE CÓDIGO:
+===========================
+
+FileMetadata.cs:
+├─ IsSelected
+│  ├─ NO dispara OnPropertyChanged
+│  └─ Dispara SelectionChanged event
+└─ ActionResult
+   └─ Sí dispara OnPropertyChanged (propiedades normales)
+
+MainViewModel.cs:
+├─ FileMetadata.SelectionChanged += OnFileMetadataSelectionChanged
+└─ OnFileMetadataSelectionChanged
+   └─ Actualiza SelectedFilesCountText (depende de selección)
+   └─ Actualiza SelectedFilesCountValue (depende de selección)
+
+═══════════════════════════════════════════════════════════════════════════════
+
+TESTING MANUAL:
+===============
+
+Ejecuta estos pasos para verificar que funciona:
+
+TEST 1: Selección sin reordenación
+─────────────────────────────────
+1. Busca duplicados (3+ grupos)
+2. Anota el orden de los items del primer grupo
+3. Selecciona cada item uno a uno
+4. Verifica que el orden NO cambió ✓
+
+TEST 2: Contador actualizado
+───────────────────────────────
+1. Selecciona 5 items diferentes
+2. Verifica que el contador dice "5" ✓
+3. Deselecciona 2 items
+4. Verifica que el contador dice "3" ✓
+
+TEST 3: Agrupación intacta
+──────────────────────────
+1. Selecciona items de diferentes grupos
+2. Verifica que cada grupo mantiene su separación ✓
+3. Verifica que los headers de grupo aparecen correctamente ✓
+
+═══════════════════════════════════════════════════════════════════════════════
+
+CONCLUSIÓN:
+===========
+
+✅ PROBLEMA: OnPropertyChanged en IsSelected causaba reordenación
+✅ CAUSA: CollectionView recalculaba sorts/groups en cada selección
+✅ SOLUCIÓN: Remover OnPropertyChanged de IsSelected
+✅ RESULTADO: Items mantienen su posición al seleccionar
+
+Los cambios implementados son mínimos, seguros y performantes.
+
+═══════════════════════════════════════════════════════════════════════════════

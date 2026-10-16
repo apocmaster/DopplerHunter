@@ -16,9 +16,10 @@
     <SolidColorBrush x:Key="Overlay" Color="{StaticResource stone-800}" Opacity="0.8" />
     
     <!-- BOOTSTRAP PALETTE DEFINITIONS -->
-    <SolidColorBrush x:Key="AppBackground" Color="{StaticResource gray-100}"/>
+    <SolidColorBrush x:Key="AppBackground" Color="{StaticResource gray-200}"/>
     <SolidColorBrush x:Key="CardBackground" Color="{StaticResource white}"/>
     <SolidColorBrush x:Key="PrimaryAccent" Color="{StaticResource blue-500}"/>
+    <SolidColorBrush x:Key="PrimaryAccentBackground" Color="{StaticResource blue-200}"/>
     <SolidColorBrush x:Key="PrimaryAccentHover" Color="{StaticResource blue-700}"/>
     <SolidColorBrush x:Key="SecondaryAccent" Color="{StaticResource gray-50}"/>
     <SolidColorBrush x:Key="SecondaryAccentHover" Color="{StaticResource gray-200}"/>
@@ -31,7 +32,12 @@
     <SolidColorBrush x:Key="DangerAccentHover" Color="{StaticResource red-900}"/>
     <SolidColorBrush x:Key="DangerButtonBackground" Color="{StaticResource red-700}"/>
     <SolidColorBrush x:Key="DangerButtonBackgroundHover" Color="{StaticResource red-900}"/>
-    <SolidColorBrush x:Key="Bar" Color="{StaticResource gray-300}"/> 
+    <SolidColorBrush x:Key="Bar" Color="{StaticResource gray-300}"/>   
+
+
+    <!-- BRUSHES FOR COLUMNHEADER -->
+    <SolidColorBrush x:Key="ColumnHeader" Color="{StaticResource stone-200}" />
+    <SolidColorBrush x:Key="ColumnHeaderBorder" Color="{StaticResource gray-400}"/>
 
     <!--BRUSHES FOR RESPONSEACTION -->
     <SolidColorBrush x:Key="ErrorBrush" Color="{StaticResource red-700}"/>
@@ -40,15 +46,15 @@
     <SolidColorBrush x:Key="DefaultBrush" Color="{StaticResource black}"/>
     
     <!--SCROLL BAR BRUSHES-->
-    <SolidColorBrush x:Key="ScrollBarThumbBrush" Color="{StaticResource gray-200}" />
-    <SolidColorBrush x:Key="ScrollBarThumbHoverBrush" Color="{StaticResource gray-400}" />
+    <SolidColorBrush x:Key="ScrollBarThumbBrush" Color="{StaticResource gray-400}" />
+    <SolidColorBrush x:Key="ScrollBarThumbHoverBrush" Color="{StaticResource gray-500}" />
     <SolidColorBrush x:Key="ScrollBarTrackBrush" Color="{StaticResource transparent}" />
 
     <!--FONT FAMILIES-->
     <FontFamily x:Key="DefaultFont">{StaticResource TailwindFont}</FontFamily>
 
     <!-- SHADOWS -->
-    <DropShadowEffect x:Key="CardShadow" BlurRadius="12" ShadowDepth="2" Direction="270" Color="{StaticResource black}" Opacity="0.06"/>
+    <DropShadowEffect x:Key="CardShadow" BlurRadius="12" ShadowDepth="2" Direction="270" Color="{StaticResource black}" Opacity="0.15"/>
 
 
 </ResourceDictionary>
