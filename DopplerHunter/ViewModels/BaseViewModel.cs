@@ -8,26 +8,17 @@ namespace DopplerHunter.ViewModels
     /// </summary>
     public abstract class BaseViewModel : NotificationPropertiesBase
     {
-        //public event PropertyChangedEventHandler PropertyChanged;
-
-        ///// <summary>
-        ///// Notifica cambios en propiedades.
-        ///// </summary>
-        //protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
-        //{
-        //    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        //}
 
         /// <summary>
         /// Establece un valor en una propiedad y notifica si cambió.
         /// </summary>
-        protected bool SetProperty<T>(ref T field, T value, [CallerMemberName] string propertyName = null)
+        protected bool SetProperty<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
         {
             if (EqualityComparer<T>.Default.Equals(field, value))
                 return false;
 
             field = value;
-            OnPropertyChanged(propertyName);
+            OnPropertyChanged(propertyName!);
             return true;
         }
     }

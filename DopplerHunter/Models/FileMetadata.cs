@@ -7,51 +7,51 @@ using System.Windows.Navigation;
 namespace DopplerHunter.Models
 {
     /// <summary>
-    /// Modelo unificado para almacenar metadatos de archivos y detección de duplicados.
+    /// Unified model for file metadata, used for grouping duplicates and tracking file properties.
     /// </summary>
     public class FileMetadata: NotificationPropertiesBase
     {
-        
+
         #region Properties
 
         /// <summary>
-        /// Ruta completa del archivo.
+        /// Path of the file, used for grouping duplicates.
         /// </summary>
         public string FullPath { get; set; } = string.Empty;
 
         /// <summary>
-        /// Nombre del archivo.
+        /// Filename of the file, used for grouping duplicates.
         /// </summary>
         public string FileName { get; set; } = string.Empty;
 
         /// <summary>
-        /// Tamaño del archivo en bytes.
+        /// Size of the file in bytes, used for grouping duplicates.
         /// </summary>
         public long FileSize { get; set; }
 
         /// <summary>
-        /// Hash SHA256 del archivo (calculado después de verificar tamaño).
+        /// Hash SHA256 of the file, used for grouping duplicates.
         /// </summary>
         private string fileHash = string.Empty;
         public string FileHash { get => fileHash; set => fileHash = value; }
 
         /// <summary>
-        /// Fecha de última modificación.
+        /// Last modified date of the file, used for grouping duplicates.
         /// </summary>
         public DateTime LastModified { get; set; }
 
         /// <summary>
-        /// Indica si el hash ha sido calculado.
+        /// Indicate whether the hash has been calculated for this file. This is used to avoid recalculating the hash for files that have already been processed.
         /// </summary>
         public bool IsHashCalculated { get; set; }
 
         /// <summary>
-        /// Clave compuesta para agrupar duplicados (tamaño + hash).
+        /// Flag to indicate if the file is a duplicate. This is used for grouping duplicates.
         /// </summary>
         public bool IsFileDuplicated { get; set; }
 
         /// <summary>
-        ///
+        /// Path of the folder containing the file, used for grouping duplicates.
         /// </summary>
         public string FolderPath { get; set; } = string.Empty;
 
@@ -100,12 +100,15 @@ namespace DopplerHunter.Models
 
         #region Events
 
+        /// <summary>
+        /// Event triggered when the selection state of the file changes.
+        /// </summary>
         public static event EventHandler? SelectionChanged;
 
         #endregion
 
         /// <summary>
-        /// Obtiene el tamaño formateado en KB/MB/GB.
+        /// Get the formatted file size in KB/MB/GB.
         /// </summary>
         public string FileSizeFormatted
         {
@@ -126,8 +129,9 @@ namespace DopplerHunter.Models
         }
 
         /// <summary>
-        /// Copia del objeto.
+        /// Creates a copy of the current FileMetadata instance.
         /// </summary>
+        /// <returns>A new FileMetadata instance with the same property values.</returns>
         public FileMetadata Clone()
         {
             return new FileMetadata
@@ -141,6 +145,10 @@ namespace DopplerHunter.Models
             };
         }
 
+        /// <summary>
+        /// Returns a string representation of the FileMetadata instance, including the filename and formatted file size.
+        /// </summary>
+        /// <returns></returns>
         public override string ToString()
         {
             return $"{FileName} ({FileSizeFormatted})";

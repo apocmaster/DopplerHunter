@@ -4,15 +4,17 @@ using System.Text;
 
 namespace DopplerHunter.Utilities
 {
+    public enum ResponseAction
+    {
+        None,
+        Succeeded,
+        Failed,
+        Warning,
+        Error
+    }
     public class FileActionResult
     {
-        public enum ResponseAction
-        { 
-            Succeeded,
-            Failed,
-            Warning, 
-            Error
-        }
+        
         public ResponseAction Status { get; set; }
         public string Message { get; set; } = string.Empty;
 
